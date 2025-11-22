@@ -13,6 +13,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+use function array_keys;
+use function array_merge;
+
 #[AsCommand(
     name: 'app:generate-tournament',
     description: 'Generates a new tournament.',
@@ -50,30 +53,47 @@ final class GenerateTournamentCommand
         );
 
         $tournamentTarget = new TournamentRandomCalculator();
-        $assignments      = $tournamentTarget->calculate($tournament);
+        $tournamentTarget->calculate($tournament);
+        $assignments = $tournament->targets();
 
-        $table = new Table($io);
+        $table        = new Table($io);
         $stakeHeaders = [];
-        if ($assignments !== []) {
-            $stakeHeaders = array_keys($assignments[0]['stakes'] ?? []);
+        foreach ($assignments as $assignment) {
+            $stakeHeaders = array_keys($assignment->stakes()->all());
+            break;
         }
+
         $table->setHeaders(array_merge(['Round', 'Shooting Lane', 'Target Type', 'Target'], $stakeHeaders));
         $rows = [];
         foreach ($assignments as $assignment) {
             $row = [
-                $assignment['round'],
-                $assignment['shootingLane']->name(),
-                $assignment['target']->type()->value,
-                $assignment['target']->name(),
+                $assignment->round(),
+                $assignment->shootingLane()->name(),
+                $assignment->target()->type()->value,
+                $assignment->target()->name(),
             ];
             foreach ($stakeHeaders as $stake) {
-                $row[] = $assignment['stakes'][$stake] ?? '-';
+                $row[] = $assignment->stakes()->has($stake) ? $assignment->stakes()->get($stake) : '-';
             }
+
             $rows[] = $row;
         }
 
         $table->setRows($rows);
         $table->render();
+
+        $io->note('Validating tournament assignments...');
+        $validator = new \App\Application\Service\TournamentValidator();
+        $errors    = $validator->validate($tournament);
+        if (count($errors) > 0) {
+            $io->error('Tournament validation failed with the following errors:');
+            foreach ($errors as $error) {
+                $io->writeln('- ' . $error);
+            }
+            return Command::FAILURE;
+        } else {
+            $io->note('... Tournament validation passed with no errors.');
+        }
 
         $io->success('Tournament generated successfully.');
 

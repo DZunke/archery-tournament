@@ -18,6 +18,7 @@ final class Tournament
         private readonly Ruleset $ruleset,
         private readonly ArcheryGround $archeryGround,
         private readonly int $numberOfTargets,
+        private TournamentTargetCollection $targets,
     ) {
         Assert::uuid($this->id, 'The tournament id must be a valid UUID.');
         Assert::notEmpty($this->name, 'The tournament name must not be empty.');
@@ -37,6 +38,7 @@ final class Tournament
             ruleset: $ruleset,
             archeryGround: $archeryGround,
             numberOfTargets: $numberOfTargets,
+            targets: new TournamentTargetCollection(),
         );
     }
 
@@ -68,5 +70,20 @@ final class Tournament
     public function numberOfTargets(): int
     {
         return $this->numberOfTargets;
+    }
+
+    public function targets(): TournamentTargetCollection
+    {
+        return $this->targets;
+    }
+
+    public function replaceTargets(TournamentTargetCollection $targets): void
+    {
+        $this->targets = $targets;
+    }
+
+    public function addTarget(TournamentTarget $target): void
+    {
+        $this->targets->add($target);
     }
 }
