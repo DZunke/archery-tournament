@@ -12,17 +12,18 @@ use Webmozart\Assert\Assert;
 use function array_filter;
 use function array_slice;
 use function array_values;
+use function max;
 use function count;
 use function in_array;
-use function lcg_value;
 use function min;
+use function random_int;
 use function shuffle;
 use function spl_object_id;
 use function usort;
 
 final class TournamentRandomCalculator
 {
-    /** @return list<array{round:int, shootingLane:ShootingLane, target:Target, distance:float}> */
+    /** @return list<array{round:int, shootingLane:ShootingLane, target:Target, distance:int, stakes:array<string,int>}> */
     public function calculate(Tournament $tournament): array
     {
         $archeryGround = $tournament->archeryGround();
@@ -66,9 +67,21 @@ final class TournamentRandomCalculator
         foreach ($shootingLanes as $index => $lane) {
             $compatibleTypesByLane[$index] = [];
             foreach ($requiredTypes as $requiredType) {
-                $range = $ruleset->distanceRange($requiredType);
-                if ($range['min'] <= $lane->maxDistance()) {
-                    $compatibleTypesByLane[$index][$requiredType->value] = $range;
+                $stakeRanges  = $ruleset->stakeDistanceRanges($requiredType);
+                $farthestStake = null;
+                $farthestRange = null;
+                foreach ($stakeRanges as $stake => $range) {
+                    if ($farthestRange === null || $range['max'] > $farthestRange['max']) {
+                        $farthestRange = $range;
+                        $farthestStake = $stake;
+                    }
+                }
+
+                if ($farthestRange !== null && $farthestRange['max'] <= $lane->maxDistance()) {
+                    $compatibleTypesByLane[$index][$requiredType->value] = [
+                        'stakeRanges' => $stakeRanges,
+                        'farthestStake' => $farthestStake,
+                    ];
                 }
             }
 
@@ -99,7 +112,7 @@ final class TournamentRandomCalculator
             },
         );
 
-        $maxUsableLanes  = count($compatibleLaneData) > 1 ? count($compatibleLaneData) - 1 : 1;
+        $maxUsableLanes  = max(1, count($compatibleLaneData) - 1);
         $perRoundCapacity = min(
             $tournament->numberOfTargets(),
             $maxUsableLanes,
@@ -135,7 +148,7 @@ final class TournamentRandomCalculator
         while ($remainingTotal > 0) {
             for ($slot = 0; $slot < $perRoundCapacity && $remainingTotal > 0; $slot++) {
                 $selectedType  = null;
-                $selectedRange = null;
+                $selectedRangeData = null;
 
                 for ($offset = 0; $offset < $typeCount; $offset++) {
                     $candidateIndex = ($typeCursor + $offset) % $typeCount;
@@ -155,8 +168,8 @@ final class TournamentRandomCalculator
                         continue;
                     }
 
-                    $selectedType  = $candidateType;
-                    $selectedRange = $compatibleTypesByLane[$slot][$candidateKey];
+                    $selectedType      = $candidateType;
+                    $selectedRangeData = $compatibleTypesByLane[$slot][$candidateKey];
                     $typeCursor    = ($candidateIndex + 1) % $typeCount;
                     break;
                 }
@@ -185,15 +198,12 @@ final class TournamentRandomCalculator
                         sprintf('No available target of type %s for lane %s.', $typeKey, $shootingLanes[$slot]->name()),
                     );
 
-                    $maxAllowedDistance = min($shootingLanes[$slot]->maxDistance(), $selectedRange['max']);
-                    $distance           = $maxAllowedDistance === $selectedRange['min']
-                        ? $maxAllowedDistance
-                        : $selectedRange['min'] + (lcg_value() * ($maxAllowedDistance - $selectedRange['min']));
-
                     $laneTargetBinding[$slot][$typeKey] = [
                         'shootingLane' => $shootingLanes[$slot],
                         'target' => $bound,
-                        'distance' => $distance,
+                        'stakeRanges' => $selectedRangeData['stakeRanges'],
+                        'farthestStake' => $selectedRangeData['farthestStake'],
+                        'laneMaxDistance' => $shootingLanes[$slot]->maxDistance(),
                     ];
 
                     $bindingsPerType[$typeKey] = ($bindingsPerType[$typeKey] ?? 0) + 1;
@@ -201,11 +211,26 @@ final class TournamentRandomCalculator
 
                 $binding = $laneTargetBinding[$slot][$typeKey];
 
+                $stakes = [];
+                foreach ($binding['stakeRanges'] as $stake => $range) {
+                    $maxAllowedDistance = max($range['min'], min($binding['laneMaxDistance'], $range['max']));
+                    $minInt = (int) ceil($range['min']);
+                    $maxInt = (int) floor($maxAllowedDistance);
+                    $base = $minInt >= $maxInt ? $minInt : random_int($minInt, $maxInt);
+                    $step = random_int(0, 1) === 1 ? 5 : 1;
+                    $direction = random_int(0, 1) === 1 ? 1 : -1;
+                    $adjusted = $base + ($step * $direction);
+                    $stakes[$stake] = max($minInt, min($maxInt, $adjusted));
+                }
+
+                $distance = $stakes[$binding['farthestStake']];
+
                 $assignments[] = [
                     'round' => $round,
                     'shootingLane' => $binding['shootingLane'],
                     'target' => $binding['target'],
-                    'distance' => $binding['distance'],
+                    'distance' => $distance,
+                    'stakes' => $stakes,
                 ];
 
                 $remainingByTypeKey[$typeKey]--;

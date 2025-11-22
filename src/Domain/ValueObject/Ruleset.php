@@ -31,8 +31,8 @@ enum Ruleset: string
         return $this->allowedTargetTypes();
     }
 
-    /** @return array{min: float, max: float} */
-    public function distanceRange(TargetType $targetType): array
+    /** @return array<string, array{min: float, max: float}> */
+    public function stakeDistanceRanges(TargetType $targetType): array
     {
         Assert::true(
             in_array($targetType, $this->allowedTargetTypes(), true),
@@ -41,10 +41,26 @@ enum Ruleset: string
 
         return match ($this) {
             self::DSB_3D => match ($targetType) {
-                TargetType::ANIMAL_GROUP_1 => ['min' => 30.0, 'max' => 45.0],
-                TargetType::ANIMAL_GROUP_2 => ['min' => 20.0, 'max' => 35.0],
-                TargetType::ANIMAL_GROUP_3 => ['min' => 10.0, 'max' => 25.0],
-                TargetType::ANIMAL_GROUP_4 => ['min' => 5.0, 'max' => 15.0],
+                TargetType::ANIMAL_GROUP_1 => [
+                    'red' => ['min' => 30.0, 'max' => 45.0],
+                    'blue' => ['min' => 20.0, 'max' => 30.0],
+                    'yellow' => ['min' => 15.0, 'max' => 15.0],
+                ],
+                TargetType::ANIMAL_GROUP_2 => [
+                    'red' => ['min' => 20.0, 'max' => 35.0],
+                    'blue' => ['min' => 15.0, 'max' => 25.0],
+                    'yellow' => ['min' => 12.0, 'max' => 12.0],
+                ],
+                TargetType::ANIMAL_GROUP_3 => [
+                    'red' => ['min' => 10.0, 'max' => 25.0],
+                    'blue' => ['min' => 10.0, 'max' => 20.0],
+                    'yellow' => ['min' => 7.0, 'max' => 7.0],
+                ],
+                TargetType::ANIMAL_GROUP_4 => [
+                    'red' => ['min' => 5.0, 'max' => 15.0],
+                    'blue' => ['min' => 5.0, 'max' => 15.0],
+                    'yellow' => ['min' => 5.0, 'max' => 5.0],
+                ],
             },
         };
     }
