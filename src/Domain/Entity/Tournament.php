@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Entity;
+
+use App\Domain\ValueObject\Ruleset;
+use DateTimeImmutable;
+use Symfony\Component\Uid\Uuid;
+use Webmozart\Assert\Assert;
+
+final class Tournament
+{
+    public function __construct(
+        private readonly string $id,
+        private readonly string $name,
+        private readonly DateTimeImmutable $eventDate,
+        private readonly Ruleset $ruleset,
+        private readonly ArcheryGround $archeryGround,
+        private readonly int $numberOfTargets,
+    ) {
+        Assert::uuid($this->id, 'The tournament id must be a valid UUID.');
+        Assert::notEmpty($this->name, 'The tournament name must not be empty.');
+        Assert::greaterThan($this->numberOfTargets, 0, 'The number of targets must be greater than zero.');
+    }
+
+    public static function create(
+        string $name,
+        Ruleset $ruleset,
+        ArcheryGround $archeryGround,
+        int $numberOfTargets,
+    ): self {
+        return new self(
+            id: Uuid::v4()->toRfc4122(),
+            name: $name,
+            eventDate: new DateTimeImmutable(),
+            ruleset: $ruleset,
+            archeryGround: $archeryGround,
+            numberOfTargets: $numberOfTargets,
+        );
+    }
+
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    public function eventDate(): DateTimeImmutable
+    {
+        return $this->eventDate;
+    }
+
+    public function ruleset(): Ruleset
+    {
+        return $this->ruleset;
+    }
+
+    public function archeryGround(): ArcheryGround
+    {
+        return $this->archeryGround;
+    }
+
+    public function numberOfTargets(): int
+    {
+        return $this->numberOfTargets;
+    }
+}
