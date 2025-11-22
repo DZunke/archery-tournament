@@ -10,24 +10,23 @@ use App\Domain\Entity\Tournament;
 use Webmozart\Assert\Assert;
 
 use function array_filter;
-use function array_slice;
 use function array_values;
 use function ceil;
 use function count;
 use function in_array;
+use function lcg_value;
 use function min;
 use function shuffle;
 
 final class TournamentRandomCalculator
 {
-    /** @return list<array{round:int, shootingLane:ShootingLane, target:Target}> */
+    /** @return list<array{round:int, shootingLane:ShootingLane, target:Target, distance:float}> */
     public function calculate(Tournament $tournament): array
     {
         $archeryGround = $tournament->archeryGround();
         $ruleset       = $tournament->ruleset();
-
-        $targetsPerRound = $archeryGround->numberOfShootingLanes();
-        Assert::greaterThan($targetsPerRound, 0, 'The archery ground must have at least one shooting lane.');
+        $shootingLanes = $archeryGround->shootingLanes();
+        Assert::notEmpty($shootingLanes, 'The archery ground must have at least one shooting lane.');
 
         $availableTargets = array_values(array_filter(
             $archeryGround->targetStorage(),
@@ -35,12 +34,49 @@ final class TournamentRandomCalculator
         ));
         Assert::notEmpty($availableTargets, 'The archery ground must have targets fitting the ruleset.');
 
-        $perRoundCapacity = min($targetsPerRound, count($availableTargets), $tournament->numberOfTargets());
-        Assert::greaterThan($perRoundCapacity, 0, 'The tournament must allow at least one target per round.');
-
-        $shootingLanes = array_slice($archeryGround->shootingLanes(), 0, $perRoundCapacity);
         shuffle($availableTargets);
-        $laneTargets = array_slice($availableTargets, 0, $perRoundCapacity);
+        $laneTargets = [];
+        foreach ($shootingLanes as $shootingLane) {
+            $compatibleIndex = null;
+            $distanceRange   = null;
+
+            foreach ($availableTargets as $index => $target) {
+                $range = $ruleset->distanceRange($target->type());
+                if ($range['min'] > $shootingLane->maxDistance()) {
+                    continue;
+                }
+
+                $compatibleIndex = $index;
+                $distanceRange   = $range;
+                break;
+            }
+
+            if ($compatibleIndex === null) {
+                continue;
+            }
+
+            $target = $availableTargets[$compatibleIndex];
+            unset($availableTargets[$compatibleIndex]);
+            $availableTargets = array_values($availableTargets);
+
+            $maxAllowedDistance = min($shootingLane->maxDistance(), $distanceRange['max']);
+            $distance           = $maxAllowedDistance === $distanceRange['min']
+                ? $maxAllowedDistance
+                : $distanceRange['min'] + (lcg_value() * ($maxAllowedDistance - $distanceRange['min']));
+
+            $laneTargets[] = [
+                'shootingLane' => $shootingLane,
+                'target' => $target,
+                'distance' => $distance,
+            ];
+
+            if (count($laneTargets) >= $tournament->numberOfTargets()) {
+                break;
+            }
+        }
+
+        $perRoundCapacity = min(count($laneTargets), $tournament->numberOfTargets());
+        Assert::greaterThan($perRoundCapacity, 0, 'The tournament must allow at least one target per round.');
 
         $amountOfRoundsNeeded = (int) ceil($tournament->numberOfTargets() / $perRoundCapacity);
 
@@ -50,10 +86,12 @@ final class TournamentRandomCalculator
             $targetsThisRound = min($perRoundCapacity, $remainingTargets);
 
             for ($slot = 0; $slot < $targetsThisRound; $slot++) {
+                $laneTarget = $laneTargets[$slot];
                 $assignments[] = [
                     'round' => $round,
-                    'shootingLane' => $shootingLanes[$slot],
-                    'target' => $laneTargets[$slot],
+                    'shootingLane' => $laneTarget['shootingLane'],
+                    'target' => $laneTarget['target'],
+                    'distance' => $laneTarget['distance'],
                 ];
             }
 

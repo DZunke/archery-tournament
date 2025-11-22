@@ -51,6 +51,22 @@ final class ArcheryGroundSmallSized
             ),
         );
 
+        $archeryGround->addTarget(
+            new Target(
+                type: TargetType::ANIMAL_GROUP_4,
+                name: 'Rabbit Target',
+                image: 'rabbit.png',
+            ),
+        );
+
+        $archeryGround->addTarget(
+            new Target(
+                type: TargetType::ANIMAL_GROUP_4,
+                name: 'Marmot Target',
+                image: 'marmot.png',
+            ),
+        );
+
         $archeryGround->addShootingLane(
             new ShootingLane(
                 name: 'Lane 1',

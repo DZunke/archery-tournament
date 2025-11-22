@@ -53,12 +53,13 @@ final class GenerateTournamentCommand
         $assignments      = $tournamentTarget->calculate($tournament);
 
         $table = new Table($io);
-        $table->setHeaders(['Round', 'Shooting Lane', 'Target']);
+        $table->setHeaders(['Round', 'Shooting Lane', 'Target Type', 'Target']);
         $rows = [];
         foreach ($assignments as $assignment) {
             $rows[] = [
                 $assignment['round'],
                 $assignment['shootingLane']->name(),
+                $assignment['target']->type()->value,
                 $assignment['target']->name(),
             ];
         }
