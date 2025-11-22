@@ -10,13 +10,15 @@ use App\Domain\Entity\Tournament;
 use Webmozart\Assert\Assert;
 
 use function array_filter;
+use function array_slice;
 use function array_values;
-use function ceil;
 use function count;
 use function in_array;
 use function lcg_value;
 use function min;
 use function shuffle;
+use function spl_object_id;
+use function usort;
 
 final class TournamentRandomCalculator
 {
@@ -28,74 +30,189 @@ final class TournamentRandomCalculator
         $shootingLanes = $archeryGround->shootingLanes();
         Assert::notEmpty($shootingLanes, 'The archery ground must have at least one shooting lane.');
 
+        $requiredTypes = $ruleset->requiredTargetTypes();
+        Assert::greaterThanEq(
+            $tournament->numberOfTargets(),
+            count($requiredTypes),
+            'The tournament must request at least one target per required target group.',
+        );
+
         $availableTargets = array_values(array_filter(
             $archeryGround->targetStorage(),
-            static fn (Target $target): bool => in_array($target->type(), $ruleset->allowedTargetTypes(), true),
+            static fn (Target $target): bool => in_array($target->type(), $requiredTypes, true),
         ));
         Assert::notEmpty($availableTargets, 'The archery ground must have targets fitting the ruleset.');
 
         shuffle($availableTargets);
-        $laneTargets = [];
-        foreach ($shootingLanes as $shootingLane) {
-            $compatibleIndex = null;
-            $distanceRange   = null;
-
-            foreach ($availableTargets as $index => $target) {
-                $range = $ruleset->distanceRange($target->type());
-                if ($range['min'] > $shootingLane->maxDistance()) {
-                    continue;
-                }
-
-                $compatibleIndex = $index;
-                $distanceRange   = $range;
-                break;
-            }
-
-            if ($compatibleIndex === null) {
-                continue;
-            }
-
-            $target = $availableTargets[$compatibleIndex];
-            unset($availableTargets[$compatibleIndex]);
-            $availableTargets = array_values($availableTargets);
-
-            $maxAllowedDistance = min($shootingLane->maxDistance(), $distanceRange['max']);
-            $distance           = $maxAllowedDistance === $distanceRange['min']
-                ? $maxAllowedDistance
-                : $distanceRange['min'] + (lcg_value() * ($maxAllowedDistance - $distanceRange['min']));
-
-            $laneTargets[] = [
-                'shootingLane' => $shootingLane,
-                'target' => $target,
-                'distance' => $distance,
-            ];
-
-            if (count($laneTargets) >= $tournament->numberOfTargets()) {
-                break;
-            }
+        $targetsByType = [];
+        foreach ($availableTargets as $target) {
+            $targetsByType[$target->type()->value][] = $target;
+        }
+        $targetSupplyByType = [];
+        foreach ($targetsByType as $typeKey => $targets) {
+            $targetSupplyByType[$typeKey] = count($targets);
         }
 
-        $perRoundCapacity = min(count($laneTargets), $tournament->numberOfTargets());
-        Assert::greaterThan($perRoundCapacity, 0, 'The tournament must allow at least one target per round.');
+        foreach ($requiredTypes as $requiredType) {
+            Assert::keyExists(
+                $targetsByType,
+                $requiredType->value,
+                sprintf('At least one target of type %s is required.', $requiredType->value),
+            );
+        }
 
-        $amountOfRoundsNeeded = (int) ceil($tournament->numberOfTargets() / $perRoundCapacity);
-
-        $assignments      = [];
-        $remainingTargets = $tournament->numberOfTargets();
-        for ($round = 1; $round <= $amountOfRoundsNeeded; $round++) {
-            $targetsThisRound = min($perRoundCapacity, $remainingTargets);
-
-            for ($slot = 0; $slot < $targetsThisRound; $slot++) {
-                $laneTarget = $laneTargets[$slot];
-                $assignments[] = [
-                    'round' => $round,
-                    'shootingLane' => $laneTarget['shootingLane'],
-                    'target' => $laneTarget['target'],
-                    'distance' => $laneTarget['distance'],
-                ];
+        $compatibleTypesByLane = [];
+        $compatibleLaneData   = [];
+        foreach ($shootingLanes as $index => $lane) {
+            $compatibleTypesByLane[$index] = [];
+            foreach ($requiredTypes as $requiredType) {
+                $range = $ruleset->distanceRange($requiredType);
+                if ($range['min'] <= $lane->maxDistance()) {
+                    $compatibleTypesByLane[$index][$requiredType->value] = $range;
+                }
             }
 
-            $remainingTargets -= $targetsThisRound;
+            Assert::notEmpty(
+                $compatibleTypesByLane[$index],
+                sprintf('Shooting lane %s is incompatible with all required target types.', $lane->name()),
+            );
+
+            $compatibleLaneData[] = [
+                'lane' => $lane,
+                'compatible' => $compatibleTypesByLane[$index],
+            ];
+        }
+
+        Assert::notEmpty($compatibleLaneData, 'No compatible shooting lanes available for required target types.');
+
+        usort(
+            $compatibleLaneData,
+            static function (array $a, array $b): int {
+                $countA = count($a['compatible']);
+                $countB = count($b['compatible']);
+
+                if ($countA === $countB) {
+                    return $b['lane']->maxDistance() <=> $a['lane']->maxDistance();
+                }
+
+                return $countB <=> $countA;
+            },
+        );
+
+        $maxUsableLanes  = count($compatibleLaneData) > 1 ? count($compatibleLaneData) - 1 : 1;
+        $perRoundCapacity = min(
+            $tournament->numberOfTargets(),
+            $maxUsableLanes,
+            count($compatibleLaneData),
+            count($availableTargets),
+        );
+        Assert::greaterThan($perRoundCapacity, 0, 'The tournament must allow at least one target per round.');
+
+        $selectedLanes = array_slice($compatibleLaneData, 0, $perRoundCapacity);
+        $shootingLanes = [];
+        $compatibleTypesByLane = [];
+        foreach ($selectedLanes as $idx => $laneData) {
+            $shootingLanes[$idx] = $laneData['lane'];
+            $compatibleTypesByLane[$idx] = $laneData['compatible'];
+        }
+
+        $typeCount          = count($requiredTypes);
+        $basePerType        = intdiv($tournament->numberOfTargets(), $typeCount);
+        $withExtra          = $tournament->numberOfTargets() % $typeCount;
+        $remainingByTypeKey = [];
+        foreach ($requiredTypes as $index => $requiredType) {
+            $remainingByTypeKey[$requiredType->value] = $basePerType + ($index < $withExtra ? 1 : 0);
+        }
+
+        $typeCursor        = 0;
+        $laneTargetBinding = [];
+        $usedTargetIds     = [];
+        $bindingsPerType   = [];
+        $assignments       = [];
+        $remainingTotal    = $tournament->numberOfTargets();
+        $round             = 1;
+
+        while ($remainingTotal > 0) {
+            for ($slot = 0; $slot < $perRoundCapacity && $remainingTotal > 0; $slot++) {
+                $selectedType  = null;
+                $selectedRange = null;
+
+                for ($offset = 0; $offset < $typeCount; $offset++) {
+                    $candidateIndex = ($typeCursor + $offset) % $typeCount;
+                    $candidateType  = $requiredTypes[$candidateIndex];
+                    $candidateKey   = $candidateType->value;
+
+                    if (($remainingByTypeKey[$candidateKey] ?? 0) <= 0) {
+                        continue;
+                    }
+
+                    if (! isset($compatibleTypesByLane[$slot][$candidateKey])) {
+                        continue;
+                    }
+
+                    $bindingExists = isset($laneTargetBinding[$slot][$candidateKey]);
+                    if (! $bindingExists && (($bindingsPerType[$candidateKey] ?? 0) >= $targetSupplyByType[$candidateKey])) {
+                        continue;
+                    }
+
+                    $selectedType  = $candidateType;
+                    $selectedRange = $compatibleTypesByLane[$slot][$candidateKey];
+                    $typeCursor    = ($candidateIndex + 1) % $typeCount;
+                    break;
+                }
+
+                Assert::notNull(
+                    $selectedType,
+                    sprintf('Unable to place a required target type on lane %s.', $shootingLanes[$slot]->name()),
+                );
+
+                $typeKey = $selectedType->value;
+
+                if (! isset($laneTargetBinding[$slot][$typeKey])) {
+                    $targetPool = $targetsByType[$typeKey];
+                    $bound      = null;
+                    foreach ($targetPool as $candidateTarget) {
+                        $candidateId = spl_object_id($candidateTarget);
+                        if (! isset($usedTargetIds[$candidateId])) {
+                            $bound                    = $candidateTarget;
+                            $usedTargetIds[$candidateId] = true;
+                            break;
+                        }
+                    }
+
+                    Assert::notNull(
+                        $bound,
+                        sprintf('No available target of type %s for lane %s.', $typeKey, $shootingLanes[$slot]->name()),
+                    );
+
+                    $maxAllowedDistance = min($shootingLanes[$slot]->maxDistance(), $selectedRange['max']);
+                    $distance           = $maxAllowedDistance === $selectedRange['min']
+                        ? $maxAllowedDistance
+                        : $selectedRange['min'] + (lcg_value() * ($maxAllowedDistance - $selectedRange['min']));
+
+                    $laneTargetBinding[$slot][$typeKey] = [
+                        'shootingLane' => $shootingLanes[$slot],
+                        'target' => $bound,
+                        'distance' => $distance,
+                    ];
+
+                    $bindingsPerType[$typeKey] = ($bindingsPerType[$typeKey] ?? 0) + 1;
+                }
+
+                $binding = $laneTargetBinding[$slot][$typeKey];
+
+                $assignments[] = [
+                    'round' => $round,
+                    'shootingLane' => $binding['shootingLane'],
+                    'target' => $binding['target'],
+                    'distance' => $binding['distance'],
+                ];
+
+                $remainingByTypeKey[$typeKey]--;
+                $remainingTotal--;
+            }
+
+            $round++;
         }
 
         return $assignments;

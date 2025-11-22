@@ -25,6 +25,12 @@ enum Ruleset: string
         };
     }
 
+    /** @return list<TargetType> */
+    public function requiredTargetTypes(): array
+    {
+        return $this->allowedTargetTypes();
+    }
+
     /** @return array{min: float, max: float} */
     public function distanceRange(TargetType $targetType): array
     {
