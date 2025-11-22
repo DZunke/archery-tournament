@@ -10,11 +10,13 @@ use App\Domain\Entity\Tournament;
 use Webmozart\Assert\Assert;
 
 use function array_filter;
-use function array_rand;
+use function array_slice;
 use function array_values;
 use function ceil;
+use function count;
 use function in_array;
 use function min;
+use function shuffle;
 
 final class TournamentRandomCalculator
 {
@@ -33,19 +35,25 @@ final class TournamentRandomCalculator
         ));
         Assert::notEmpty($availableTargets, 'The archery ground must have targets fitting the ruleset.');
 
-        $shootingLanes        = $archeryGround->shootingLanes();
-        $amountOfRoundsNeeded = (int) ceil($tournament->numberOfTargets() / $targetsPerRound);
+        $perRoundCapacity = min($targetsPerRound, count($availableTargets), $tournament->numberOfTargets());
+        Assert::greaterThan($perRoundCapacity, 0, 'The tournament must allow at least one target per round.');
+
+        $shootingLanes = array_slice($archeryGround->shootingLanes(), 0, $perRoundCapacity);
+        shuffle($availableTargets);
+        $laneTargets = array_slice($availableTargets, 0, $perRoundCapacity);
+
+        $amountOfRoundsNeeded = (int) ceil($tournament->numberOfTargets() / $perRoundCapacity);
 
         $assignments      = [];
         $remainingTargets = $tournament->numberOfTargets();
         for ($round = 1; $round <= $amountOfRoundsNeeded; $round++) {
-            $targetsThisRound = min($targetsPerRound, $remainingTargets);
+            $targetsThisRound = min($perRoundCapacity, $remainingTargets);
 
             for ($slot = 0; $slot < $targetsThisRound; $slot++) {
                 $assignments[] = [
                     'round' => $round,
                     'shootingLane' => $shootingLanes[$slot],
-                    'target' => $availableTargets[array_rand($availableTargets)],
+                    'target' => $laneTargets[$slot],
                 ];
             }
 
