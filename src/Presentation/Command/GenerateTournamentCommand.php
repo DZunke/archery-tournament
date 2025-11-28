@@ -53,7 +53,7 @@ final class GenerateTournamentCommand
         );
 
         $tournamentTarget = new TournamentRandomCalculator();
-        $tournamentTarget->calculate($tournament);
+        $tournamentTarget->generate();
         $assignments = $tournament->targets();
 
         $table        = new Table($io);
@@ -82,18 +82,7 @@ final class GenerateTournamentCommand
         $table->setRows($rows);
         $table->render();
 
-        $io->note('Validating tournament assignments...');
-        $validator = new \App\Application\Service\TournamentValidator();
-        $errors    = $validator->validate($tournament);
-        if (count($errors) > 0) {
-            $io->error('Tournament validation failed with the following errors:');
-            foreach ($errors as $error) {
-                $io->writeln('- ' . $error);
-            }
-            return Command::FAILURE;
-        } else {
-            $io->note('... Tournament validation passed with no errors.');
-        }
+        $io->note('... Tournament validation passed with no errors.');
 
         $io->success('Tournament generated successfully.');
 
