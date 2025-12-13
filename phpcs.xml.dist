@@ -12,7 +12,7 @@
 
     <rule ref="Doctrine">
         <properties>
-            <property name="line_length" value="140"/>
+            <property name="line_length" value="190"/>
         </properties>
 
         <!-- Exclude to be able putting attributes in front of arguments -->

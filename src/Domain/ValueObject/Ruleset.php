@@ -31,6 +31,32 @@ enum Ruleset: string
         return $this->allowedTargetTypes();
     }
 
+    public function getMaxStakeDistance(TargetType $targetType): float
+    {
+        Assert::true(
+            in_array($targetType, $this->allowedTargetTypes(), true),
+            'Target type is not allowed for this ruleset.',
+        );
+
+        $ranges = $this->stakeDistanceRanges($targetType);
+        $maxDistances = array_map(static fn(array $range) => $range['max'], $ranges);
+
+        return max($maxDistances);
+    }
+
+    public function getMinStakeDistance(TargetType $targetType): float
+    {
+        Assert::true(
+            in_array($targetType, $this->allowedTargetTypes(), true),
+            'Target type is not allowed for this ruleset.',
+        );
+
+        $ranges = $this->stakeDistanceRanges($targetType);
+        $maxDistances = array_map(static fn(array $range) => $range['min'], $ranges);
+
+        return min($maxDistances);
+    }
+
     /** @return array<string, array{min: float, max: float}> */
     public function stakeDistanceRanges(TargetType $targetType): array
     {

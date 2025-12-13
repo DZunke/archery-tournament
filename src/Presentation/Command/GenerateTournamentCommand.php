@@ -45,15 +45,13 @@ final class GenerateTournamentCommand
         ]);
         $table->render();
 
-        $tournament = Tournament::create(
-            name: 'New Tournament',
-            ruleset: $ruleset,
-            archeryGround: $archeryGround,
-            numberOfTargets: $amountOfTargets,
-        );
-
         $tournamentTarget = new TournamentRandomCalculator();
-        $tournamentTarget->generate();
+        $tournament = $tournamentTarget->generate(
+            archeryGround: $archeryGround,
+            ruleset: $ruleset,
+            amountOfTargets: $amountOfTargets,
+        )->toTournament('Foo Tournament');
+
         $assignments = $tournament->targets();
 
         $table        = new Table($io);

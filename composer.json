@@ -39,6 +39,7 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpstan/phpstan-webmozart-assert": "^2.0",
+        "phpunit/phpunit": "^12.4",
         "rector/rector": "^2.2",
         "spaze/phpstan-disallowed-calls": "^4.7"
     },
