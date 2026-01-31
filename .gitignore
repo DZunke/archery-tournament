@@ -1,4 +1,5 @@
 /vendor/
 /var/
+/config/reference.php
 
 .phpcs-cache

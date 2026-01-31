@@ -18,13 +18,13 @@
         }
     ],
     "require": {
-        "symfony/console": "^7.3",
-        "symfony/debug-bundle": "^7.3",
-        "symfony/framework-bundle": "^7.3",
+        "symfony/console": "^8.0",
+        "symfony/debug-bundle": "^8.0",
+        "symfony/framework-bundle": "^8.0",
         "symfony/runtime": "*",
-        "symfony/uid": "^7.3",
-        "symfony/yaml": "^7.3",
-        "webmozart/assert": "^1.12"
+        "symfony/uid": "^8.0",
+        "symfony/yaml": "^8.0",
+        "webmozart/assert": "^2.1"
     },
 	"config": {
 		"sort-packages": true,
