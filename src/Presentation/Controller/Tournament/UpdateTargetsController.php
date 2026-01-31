@@ -37,6 +37,13 @@ final class UpdateTargetsController extends AbstractController
     #[Route('/tournaments/{id}/targets', name: 'tournament_update_targets', methods: ['POST'])]
     public function __invoke(Request $request, string $id): Response
     {
+        $token = (string) $request->request->get('_token');
+        if (! $this->isCsrfTokenValid('tournament_update_targets_' . $id, $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('tournament_show', ['id' => $id]);
+        }
+
         $input  = UpdateTournamentTargetsInput::fromRequest($request);
         $issues = $input->issues();
 

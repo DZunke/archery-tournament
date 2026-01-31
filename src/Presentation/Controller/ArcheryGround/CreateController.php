@@ -23,6 +23,13 @@ final class CreateController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
+            $token = (string) $request->request->get('_token');
+            if (! $this->isCsrfTokenValid('archery_ground_create', $token)) {
+                $this->addFlash('error', 'Invalid CSRF token.');
+
+                return $this->redirectToRoute('archery_ground_new');
+            }
+
             $input  = CreateArcheryGroundInput::fromRequest($request);
             $errors = $input->errors();
             if ($errors !== []) {

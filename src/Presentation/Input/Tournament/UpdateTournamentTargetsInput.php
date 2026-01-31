@@ -136,22 +136,6 @@ final readonly class UpdateTournamentTargetsInput
                 }
             }
 
-            if ($lane === '') {
-                continue;
-            }
-
-            if ($target === '') {
-                continue;
-            }
-
-            if ($round <= 0) {
-                continue;
-            }
-
-            if ($stakes === []) {
-                continue;
-            }
-
             $assignments[] = new TournamentTargetAssignment(
                 (int) $index,
                 $round,

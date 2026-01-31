@@ -68,12 +68,16 @@ final readonly class DatabaseSchemaManager
                 target_id VARCHAR(36) NOT NULL,
                 distance INTEGER NOT NULL,
                 stakes TEXT NOT NULL,
-                FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE
+                FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+                FOREIGN KEY (shooting_lane_id) REFERENCES shooting_lanes(id) ON DELETE CASCADE,
+                FOREIGN KEY (target_id) REFERENCES targets(id) ON DELETE CASCADE
             )',
             'CREATE INDEX IF NOT EXISTS idx_shooting_lanes_ground ON shooting_lanes (archery_ground_id)',
             'CREATE INDEX IF NOT EXISTS idx_targets_ground ON targets (archery_ground_id)',
             'CREATE INDEX IF NOT EXISTS idx_tournaments_ground ON tournaments (archery_ground_id)',
             'CREATE INDEX IF NOT EXISTS idx_tournament_targets_tournament ON tournament_targets (tournament_id)',
+            'CREATE INDEX IF NOT EXISTS idx_tournament_targets_lane ON tournament_targets (shooting_lane_id)',
+            'CREATE INDEX IF NOT EXISTS idx_tournament_targets_target ON tournament_targets (target_id)',
         ];
     }
 

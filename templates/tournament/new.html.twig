@@ -15,6 +15,7 @@
 
 <div class="card">
     <form method="post" action="{{ path('tournament_create') }}" class="form">
+        <input type="hidden" name="_token" value="{{ csrf_token('tournament_create') }}">
         <div class="form-row">
             <label class="field">
                 <span>Tournament name</span>

@@ -81,6 +81,7 @@
                 <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Manage</a>
                 <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
                 <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">
                     <button class="button ghost danger" type="submit">Delete</button>
                 </form>
             </div>

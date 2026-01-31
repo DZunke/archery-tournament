@@ -20,6 +20,13 @@ final class CreateController extends AbstractController
     #[Route('/tournaments', name: 'tournament_create', methods: ['POST'])]
     public function __invoke(Request $request): Response
     {
+        $token = (string) $request->request->get('_token');
+        if (! $this->isCsrfTokenValid('tournament_create', $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('tournament_new');
+        }
+
         $input  = CreateTournamentInput::fromRequest($request);
         $errors = $input->errors();
 

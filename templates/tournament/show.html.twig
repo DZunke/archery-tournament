@@ -12,6 +12,7 @@
         <a class="button ghost" href="{{ path('tournament_index') }}">Back</a>
         <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
         <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">
             <button class="button danger" type="submit">Delete</button>
         </form>
     </div>
@@ -25,6 +26,7 @@
     <p class="muted">Auto-generated tournaments can be edited below. You can also regenerate the assignments.</p>
     <div class="inline-actions">
         <form method="post" action="{{ path('tournament_regenerate', {id: tournament.id}) }}" class="form form-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('tournament_regenerate_' ~ tournament.id) }}">
             <label class="choice">
                 <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
                 Randomize stakes between rounds
@@ -32,6 +34,7 @@
             <button class="button ghost" type="submit">Regenerate assignments</button>
         </form>
         <form method="post" action="{{ path('tournament_validate', {id: tournament.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('tournament_validate_' ~ tournament.id) }}">
             <button class="button" type="submit" id="validate-tournament">Validate against ruleset</button>
             <p class="muted validation-hint" id="validate-hint" hidden>Save changes before validating.</p>
         </form>
@@ -68,6 +71,7 @@
         </div>
     {% endif %}
     <form method="post" action="{{ path('tournament_update_targets', {id: tournament.id}) }}" class="form">
+        <input type="hidden" name="_token" value="{{ csrf_token('tournament_update_targets_' ~ tournament.id) }}">
         <div class="table tournament-targets" id="assignment-table">
             <div class="table-row table-head">
                 <div>Round</div>
@@ -187,6 +191,22 @@
         return;
     }
 
+    let nextIndex = (() => {
+        let maxIndex = -1;
+        table.querySelectorAll('[name^="assignments["]').forEach((input) => {
+            const name = input.getAttribute('name');
+            const match = name ? name.match(/^assignments\[(\d+)\]/) : null;
+            if (!match) {
+                return;
+            }
+            const index = Number(match[1]);
+            if (!Number.isNaN(index) && index > maxIndex) {
+                maxIndex = index;
+            }
+        });
+        return maxIndex + 1;
+    })();
+
     let hasUnsavedChanges = {{ draftAssignments is defined ? 'true' : 'false' }};
     const markDirty = () => {
         if (hasUnsavedChanges) {
@@ -238,7 +258,8 @@
     table.addEventListener('click', removeRow);
 
     addButton.addEventListener('click', () => {
-        const index = table.querySelectorAll('.assignment-row').length;
+        const index = nextIndex;
+        nextIndex += 1;
         const html = template.innerHTML.replaceAll('__INDEX__', index.toString());
         const container = document.createElement('div');
         container.innerHTML = html.trim();

@@ -20,6 +20,13 @@ final class RenameController extends AbstractController
     #[Route('/archery-grounds/{id}/rename', name: 'archery_ground_rename', methods: ['POST'])]
     public function __invoke(Request $request, string $id): Response
     {
+        $token = (string) $request->request->get('_token');
+        if (! $this->isCsrfTokenValid('archery_ground_rename_' . $id, $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('archery_ground_show', ['id' => $id]);
+        }
+
         $input  = RenameArcheryGroundInput::fromRequest($request);
         $errors = $input->errors();
         if ($errors !== []) {

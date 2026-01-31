@@ -15,6 +15,7 @@
 
 <div class="card">
     <form method="post" class="form">
+        <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_create') }}">
         <label class="field">
             <span>Name</span>
             <input type="text" name="name" placeholder="e.g. Forest Range" required>

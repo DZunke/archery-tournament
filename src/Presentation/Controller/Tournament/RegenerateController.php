@@ -20,6 +20,13 @@ final class RegenerateController extends AbstractController
     #[Route('/tournaments/{id}/regenerate', name: 'tournament_regenerate', methods: ['POST'])]
     public function __invoke(Request $request, string $id): Response
     {
+        $token = (string) $request->request->get('_token');
+        if (! $this->isCsrfTokenValid('tournament_regenerate_' . $id, $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('tournament_show', ['id' => $id]);
+        }
+
         $input  = RegenerateTournamentInput::fromRequest($request);
         $result = $this->commandBus->dispatch($input->toCommand($id));
 

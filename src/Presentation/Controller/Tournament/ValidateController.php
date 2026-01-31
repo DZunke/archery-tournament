@@ -6,11 +6,13 @@ namespace App\Presentation\Controller\Tournament;
 
 use App\Application\Bus\QueryBus;
 use App\Application\Query\Tournament\GetTournament;
+use App\Application\Service\TournamentValidation\TournamentValidationContext;
 use App\Application\Service\TournamentValidation\TournamentValidator;
 use App\Domain\Entity\Tournament;
 use App\Domain\ValueObject\TargetType;
 use App\Presentation\View\TournamentAssignmentViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -27,14 +29,23 @@ final class ValidateController extends AbstractController
     }
 
     #[Route('/tournaments/{id}/validate', name: 'tournament_validate', methods: ['POST'])]
-    public function __invoke(string $id): Response
+    public function __invoke(Request $request, string $id): Response
     {
+        $token = (string) $request->request->get('_token');
+        if (! $this->isCsrfTokenValid('tournament_validate_' . $id, $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('tournament_show', ['id' => $id]);
+        }
+
         $tournament = $this->queryBus->ask(new GetTournament($id));
         if (! $tournament instanceof Tournament) {
             throw $this->createNotFoundException('Tournament not found.');
         }
 
-        $validationResult = $this->tournamentValidator->validate($tournament);
+        $validationResult = $this->tournamentValidator->validate(
+            TournamentValidationContext::fromTournament($tournament),
+        );
         if ($validationResult->isValid()) {
             $this->addFlash('success', 'Tournament validation passed.');
         } else {

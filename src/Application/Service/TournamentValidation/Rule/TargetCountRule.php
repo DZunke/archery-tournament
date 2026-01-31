@@ -4,33 +4,43 @@ declare(strict_types=1);
 
 namespace App\Application\Service\TournamentValidation\Rule;
 
+use App\Application\Service\TournamentValidation\TournamentValidationContext;
 use App\Application\Service\TournamentValidation\TournamentValidationIssue;
-use App\Domain\Entity\Tournament;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
+
+use function array_filter;
+use function count;
 
 #[AsTaggedItem(priority: 100)]
 final class TargetCountRule implements TournamentValidationRule
 {
     /** @return list<TournamentValidationIssue> */
-    public function validate(Tournament $tournament): array
+    public function validate(TournamentValidationContext $context): array
     {
         $issues   = [];
-        $expected = $tournament->numberOfTargets();
-        $actual   = $tournament->targets()->count();
+        $expected = $context->expectedTargetCount;
+        $actual   = count(array_filter(
+            $context->assignments,
+            static fn ($assignment): bool => $assignment->round > 0
+                && $assignment->lane !== null
+                && $assignment->target !== null,
+        ));
 
         if ($actual < $expected) {
+            $missing  = $expected - $actual;
             $issues[] = new TournamentValidationIssue(
                 rule: 'Target Count',
-                message: 'Tournament has ' . $actual . ' targets assigned but expects ' . $expected . '.',
-                context: ['expected' => $expected, 'actual' => $actual],
+                message: 'Assignments are below the configured target count: expected ' . $expected . ', got ' . $actual . '. Add ' . $missing . ' assignment(s).',
+                context: ['expected' => $expected, 'actual' => $actual, 'missing' => $missing],
             );
         }
 
         if ($actual > $expected) {
+            $overage  = $actual - $expected;
             $issues[] = new TournamentValidationIssue(
                 rule: 'Target Count',
-                message: 'Tournament has ' . $actual . ' targets assigned but only ' . $expected . ' are allowed.',
-                context: ['expected' => $expected, 'actual' => $actual],
+                message: 'Assignments exceed the configured target count: expected ' . $expected . ', got ' . $actual . '. Remove ' . $overage . ' assignment(s).',
+                context: ['expected' => $expected, 'actual' => $actual, 'overage' => $overage],
             );
         }
 

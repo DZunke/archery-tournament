@@ -4,56 +4,65 @@ declare(strict_types=1);
 
 namespace App\Application\Service\TournamentValidation\Rule;
 
+use App\Application\Service\TournamentValidation\TournamentValidationContext;
 use App\Application\Service\TournamentValidation\TournamentValidationIssue;
-use App\Domain\Entity\Tournament;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
-
-use function array_unique;
-use function array_values;
-use function count;
-use function implode;
 
 #[AsTaggedItem(priority: 140)]
 final class LaneUniquenessRule implements TournamentValidationRule
 {
     /** @return list<TournamentValidationIssue> */
-    public function validate(Tournament $tournament): array
+    public function validate(TournamentValidationContext $context): array
     {
-        $issues      = [];
-        $assignments = [];
+        $issues        = [];
+        $assignments   = [];
+        $duplicateRows = [];
 
-        foreach ($tournament->targets() as $assignment) {
-            $round  = $assignment->round();
-            $lane   = $assignment->shootingLane();
-            $target = $assignment->target();
+        foreach ($context->assignments as $assignment) {
+            $lane  = $assignment->lane;
+            $round = $assignment->round;
+            if ($lane === null) {
+                continue;
+            }
 
-            if (! isset($assignments[$round][$lane->id()])) {
+            if ($round <= 0) {
+                continue;
+            }
+
+            $existingLane = $assignments[$round][$lane->id()] ?? null;
+            if ($existingLane === null) {
                 $assignments[$round][$lane->id()] = [
                     'laneName' => $lane->name(),
-                    'targets' => [],
+                    'row' => $assignment->row,
                 ];
+                continue;
             }
 
-            $assignments[$round][$lane->id()]['targets'][] = $target->name();
-        }
+            $message     = 'Lane "' . $lane->name() . '" is already used in round ' . $round;
+            $existingRow = $existingLane['row'];
 
-        foreach ($assignments as $round => $lanes) {
-            foreach ($lanes as $laneId => $data) {
-                $targets = array_values(array_unique($data['targets']));
-                if (count($targets) <= 1) {
-                    continue;
+            if ($existingRow !== null) {
+                $duplicateKey = $round . ':' . $lane->id() . ':' . $existingRow;
+                if (! isset($duplicateRows[$duplicateKey])) {
+                    $issues[]                     = new TournamentValidationIssue(
+                        rule: 'Lane Uniqueness',
+                        message: $message . ' (row ' . $existingRow . ').',
+                        context: ['row' => $existingRow, 'round' => $round],
+                    );
+                    $duplicateRows[$duplicateKey] = true;
                 }
-
-                $issues[] = new TournamentValidationIssue(
-                    rule: 'Lane Uniqueness',
-                    message: 'Lane "' . $data['laneName'] . '" is assigned multiple times in round ' . $round . ' (' . implode(', ', $targets) . ').',
-                    context: [
-                        'round' => $round,
-                        'laneId' => $laneId,
-                        'targets' => $targets,
-                    ],
-                );
             }
+
+            $contextRow = ['round' => $round];
+            if ($assignment->row !== null) {
+                $contextRow['row'] = $assignment->row;
+            }
+
+            $issues[] = new TournamentValidationIssue(
+                rule: 'Lane Uniqueness',
+                message: $existingRow !== null ? $message . ' (row ' . $existingRow . ').' : $message . '.',
+                context: $contextRow,
+            );
         }
 
         return $issues;

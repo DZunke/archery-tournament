@@ -20,6 +20,13 @@ final class AddLaneController extends AbstractController
     #[Route('/archery-grounds/{id}/lanes', name: 'archery_ground_add_lane', methods: ['POST'])]
     public function __invoke(Request $request, string $id): Response
     {
+        $token = (string) $request->request->get('_token');
+        if (! $this->isCsrfTokenValid('archery_ground_add_lane_' . $id, $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('archery_ground_show', ['id' => $id]);
+        }
+
         $input  = AddShootingLaneInput::fromRequest($request);
         $errors = $input->errors();
         if ($errors !== []) {

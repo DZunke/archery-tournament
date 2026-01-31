@@ -4,63 +4,73 @@ declare(strict_types=1);
 
 namespace App\Application\Service\TournamentValidation\Rule;
 
+use App\Application\Service\TournamentValidation\TournamentValidationContext;
 use App\Application\Service\TournamentValidation\TournamentValidationIssue;
-use App\Domain\Entity\Tournament;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
-
-use function array_keys;
-use function array_unique;
-use function count;
-use function implode;
-use function sort;
 
 #[AsTaggedItem(priority: 145)]
 final class LaneTargetConsistencyRule implements TournamentValidationRule
 {
     /** @return list<TournamentValidationIssue> */
-    public function validate(Tournament $tournament): array
+    public function validate(TournamentValidationContext $context): array
     {
-        $issues      = [];
-        $assignments = [];
+        $issues                = [];
+        $laneTargetAssignments = [];
+        $duplicateLaneRows     = [];
 
-        foreach ($tournament->targets() as $assignment) {
-            $lane   = $assignment->shootingLane();
-            $target = $assignment->target();
-            $round  = $assignment->round();
-            $laneId = $lane->id();
-
-            if (! isset($assignments[$laneId])) {
-                $assignments[$laneId] = [
-                    'laneName' => $lane->name(),
-                    'targets' => [],
-                    'targetNames' => [],
-                ];
-            }
-
-            $assignments[$laneId]['targets'][$target->id()][]   = $round;
-            $assignments[$laneId]['targetNames'][$target->id()] = $target->name();
-        }
-
-        foreach ($assignments as $laneId => $data) {
-            $targetIds = array_keys($data['targets']);
-            if (count($targetIds) <= 1) {
+        foreach ($context->assignments as $assignment) {
+            $lane   = $assignment->lane;
+            $target = $assignment->target;
+            if ($lane === null) {
                 continue;
             }
 
-            $summaries = [];
-            foreach ($data['targets'] as $targetId => $rounds) {
-                $uniqueRounds = array_unique($rounds);
-                sort($uniqueRounds);
-                $summaries[] = 'rounds ' . implode(', ', $uniqueRounds) . ': "' . $data['targetNames'][$targetId] . '"';
+            if ($target === null) {
+                continue;
+            }
+
+            $existingTarget = $laneTargetAssignments[$lane->id()] ?? null;
+            if ($existingTarget === null) {
+                $laneTargetAssignments[$lane->id()] = [
+                    'targetId' => $target->id(),
+                    'targetName' => $target->name(),
+                    'row' => $assignment->row,
+                    'laneName' => $lane->name(),
+                ];
+                continue;
+            }
+
+            if ($existingTarget['targetId'] === $target->id()) {
+                continue;
+            }
+
+            $existingRow = $existingTarget['row'];
+            $detail      = $existingRow !== null
+                ? 'row ' . $existingRow . ' uses "' . $existingTarget['targetName'] . '"'
+                : 'another round uses "' . $existingTarget['targetName'] . '"';
+            $message     = 'Lane "' . $lane->name() . '" must keep the same target across rounds (' . $detail . ').';
+
+            if ($existingRow !== null) {
+                $duplicateKey = $lane->id() . ':' . $existingRow;
+                if (! isset($duplicateLaneRows[$duplicateKey])) {
+                    $issues[]                         = new TournamentValidationIssue(
+                        rule: 'Lane Target Consistency',
+                        message: $message,
+                        context: ['row' => $existingRow],
+                    );
+                    $duplicateLaneRows[$duplicateKey] = true;
+                }
+            }
+
+            $contextRow = [];
+            if ($assignment->row !== null) {
+                $contextRow['row'] = $assignment->row;
             }
 
             $issues[] = new TournamentValidationIssue(
                 rule: 'Lane Target Consistency',
-                message: 'Lane "' . $data['laneName'] . '" must keep the same target across rounds. Found ' . implode('; ', $summaries) . '.',
-                context: [
-                    'laneId' => $laneId,
-                    'targets' => $data['targetNames'],
-                ],
+                message: $message,
+                context: $contextRow,
             );
         }
 

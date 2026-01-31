@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Service\TournamentValidation;
 
 use App\Application\Service\TournamentValidation\Rule\TournamentValidationRule;
-use App\Domain\Entity\Tournament;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 final readonly class TournamentValidator
@@ -16,12 +15,12 @@ final readonly class TournamentValidator
     ) {
     }
 
-    public function validate(Tournament $tournament): TournamentValidationResult
+    public function validate(TournamentValidationContext $context): TournamentValidationResult
     {
         $issues = [];
 
         foreach ($this->rules as $rule) {
-            foreach ($rule->validate($tournament) as $issue) {
+            foreach ($rule->validate($context) as $issue) {
                 $issues[] = $issue;
             }
         }

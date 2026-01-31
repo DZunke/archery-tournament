@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Service\TournamentValidation\Rule;
 
+use App\Application\Service\TournamentValidation\TournamentValidationContext;
 use App\Application\Service\TournamentValidation\TournamentValidationIssue;
-use App\Domain\Entity\Tournament;
 use App\Domain\ValueObject\TargetType;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
 use function array_fill_keys;
+use function array_filter;
 use function array_map;
 use function count;
 use function intdiv;
@@ -18,10 +19,10 @@ use function intdiv;
 final class TargetGroupBalanceRule implements TournamentValidationRule
 {
     /** @return list<TournamentValidationIssue> */
-    public function validate(Tournament $tournament): array
+    public function validate(TournamentValidationContext $context): array
     {
         $issues  = [];
-        $ruleset = $tournament->ruleset();
+        $ruleset = $context->ruleset;
 
         if (! $ruleset->supportsTargetGroupBalancing()) {
             return [];
@@ -39,7 +40,7 @@ final class TargetGroupBalanceRule implements TournamentValidationRule
             ];
         }
 
-        $expectedTotal = $tournament->numberOfTargets();
+        $expectedTotal = $context->expectedTargetCount;
         if ($expectedTotal % $groupCount !== 0) {
             $issues[] = new TournamentValidationIssue(
                 rule: 'Target Group Balance',
@@ -50,14 +51,29 @@ final class TargetGroupBalanceRule implements TournamentValidationRule
             return $issues;
         }
 
+        $actualTotal = count(array_filter(
+            $context->assignments,
+            static fn ($assignment): bool => $assignment->round > 0
+                && $assignment->lane !== null
+                && $assignment->target !== null,
+        ));
+
+        if ($actualTotal !== $expectedTotal) {
+            return $issues;
+        }
+
         $expectedPerGroup = intdiv($expectedTotal, $groupCount);
         $counts           = array_fill_keys(
             array_map(static fn (TargetType $type): string => $type->value, $requiredTypes),
             0,
         );
 
-        foreach ($tournament->targets() as $assignment) {
-            $type = $assignment->target()->type();
+        foreach ($context->assignments as $assignment) {
+            if ($assignment->target === null) {
+                continue;
+            }
+
+            $type = $assignment->target->type();
             if (! isset($counts[$type->value])) {
                 continue;
             }

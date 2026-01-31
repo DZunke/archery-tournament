@@ -10,10 +10,12 @@
     </div>
     <div class="inline-actions">
         <form method="post" action="{{ path('archery_ground_rename', {id: archeryGround.id}) }}" class="inline-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_rename_' ~ archeryGround.id) }}">
             <input type="text" name="name" value="{{ archeryGround.name }}" aria-label="Rename archery ground">
             <button class="button" type="submit">Rename</button>
         </form>
         <form method="post" action="{{ path('archery_ground_delete', {id: archeryGround.id}) }}" onsubmit="return confirm('Delete this archery ground?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_' ~ archeryGround.id) }}">
             <button class="button danger" type="submit">Delete</button>
         </form>
     </div>
@@ -26,6 +28,7 @@
             <span class="badge">{{ archeryGround.shootingLanes|length }}</span>
         </div>
         <form method="post" class="form" action="{{ path('archery_ground_add_lane', {id: archeryGround.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_add_lane_' ~ archeryGround.id) }}">
             <div class="form-row">
                 <label class="field">
                     <span>Lane name</span>
@@ -51,6 +54,7 @@
                     <div>{{ lane.maxDistance }} m</div>
                     <div class="table-actions">
                         <form method="post" action="{{ path('archery_ground_delete_lane', {id: archeryGround.id, laneId: lane.id}) }}" onsubmit="return confirm('Remove this lane?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}">
                             <button class="link" type="submit">Remove</button>
                         </form>
                     </div>
@@ -69,6 +73,7 @@
             <span class="badge">{{ archeryGround.targetStorage|length }}</span>
         </div>
         <form method="post" class="form" action="{{ path('archery_ground_add_target', {id: archeryGround.id}) }}" enctype="multipart/form-data">
+            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_add_target_' ~ archeryGround.id) }}">
             <div class="form-row">
                 <label class="field">
                     <span>Type</span>
@@ -146,6 +151,7 @@
                     </div>
                     <div class="table-actions">
                         <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_target_' ~ archeryGround.id ~ '_' ~ target.id) }}">
                             <button class="link" type="submit">Remove</button>
                         </form>
                     </div>
@@ -236,6 +242,7 @@
                     <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Manage</a>
                     <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
                     <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">
                         <button class="button ghost danger" type="submit">Delete</button>
                     </form>
                 </div>
