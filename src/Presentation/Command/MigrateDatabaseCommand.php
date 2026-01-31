@@ -16,10 +16,10 @@ use function count;
 use function is_int;
 
 #[AsCommand(
-    name: 'app:db:reset',
-    description: 'Drops and recreates the database schema.',
+    name: 'app:db:migrate',
+    description: 'Executes database migrations.',
 )]
-final class ResetDatabaseCommand extends Command
+final class MigrateDatabaseCommand extends Command
 {
     public function __construct(private readonly DatabaseMigrator $databaseMigrator)
     {
@@ -28,28 +28,23 @@ final class ResetDatabaseCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Skip confirmation prompt.');
+        $this->addOption('to', null, InputOption::VALUE_REQUIRED, 'Version alias to migrate to.', 'latest');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io    = new SymfonyStyle($input, $output);
-        $force = (bool) $input->getOption('force');
+        $io      = new SymfonyStyle($input, $output);
+        $version = (string) $input->getOption('to');
 
-        if (! $force && ! $io->confirm('This will delete all data. Continue?', false)) {
-            $io->warning('Database reset aborted.');
+        $plan = $this->databaseMigrator->migrate($version);
 
-            return Command::SUCCESS;
-        }
-
-        $plan = $this->databaseMigrator->reset();
         if (is_int($plan) || count($plan) === 0) {
-            $io->success('Database reset complete. Schema is up to date.');
+            $io->success('The database is already at the requested version.');
 
             return Command::SUCCESS;
         }
 
-        $io->success('Database reset complete and migrations applied.');
+        $io->success('Database migrations executed.');
 
         return Command::SUCCESS;
     }

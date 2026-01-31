@@ -20,6 +20,7 @@
     "require": {
         "doctrine/dbal": "^4.4",
         "doctrine/doctrine-bundle": "^3.2",
+        "doctrine/migrations": "^3.9",
         "symfony/console": "^8.0",
         "symfony/debug-bundle": "^8.0",
         "symfony/dotenv": "^8.0",

@@ -7,7 +7,7 @@ namespace App\Presentation\Command;
 use App\Application\Service\TargetImageStorage;
 use App\Domain\Entity\ArcheryGround\Target;
 use App\Domain\Repository\ArcheryGroundRepository;
-use App\Infrastructure\Persistence\Dbal\DatabaseSchemaManager;
+use App\Infrastructure\Persistence\DatabaseMigrator;
 use App\Tests\Fixtures\AcheryGroundMediumSized;
 use App\Tests\Fixtures\ArcheryGroundSmallSized;
 use RuntimeException;
@@ -37,7 +37,7 @@ final class SeedSampleDataCommand extends Command
     public function __construct(
         private readonly ArcheryGroundRepository $archeryGroundRepository,
         private readonly TargetImageStorage $targetImageStorage,
-        private readonly DatabaseSchemaManager $schemaManager,
+        private readonly DatabaseMigrator $databaseMigrator,
     ) {
         parent::__construct();
     }
@@ -59,8 +59,10 @@ final class SeedSampleDataCommand extends Command
         }
 
         if ($shouldReset) {
-            $this->schemaManager->reset();
+            $this->databaseMigrator->reset();
             $io->note('Database reset before seeding.');
+        } else {
+            $this->databaseMigrator->migrate('latest');
         }
 
         $fixtures = [
