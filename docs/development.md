@@ -55,6 +55,17 @@ docker compose exec app php bin/console app:db:init
 php vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=-1
 ```
 
+## UI Smoke Checks (Playwright)
+
+We validate key UI flows with Playwright against the Docker/FrankenPHP container:
+
+1. `docker compose up --build`
+2. `docker compose exec app php bin/console app:db:seed --reset`
+3. Open `http://localhost:8080` and verify:
+   - Archery ground listing loads
+   - Manage page loads, filters work
+   - Add/remove target with image works
+
 ## Common Tasks
 
 - Run generator: `php bin/console app:generate-tournament <archery-ground-id>`

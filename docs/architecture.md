@@ -12,6 +12,8 @@ This project is organized around a clean separation of domain logic, application
 - **Application** (`src/Application`)
   - Generation pipeline and steps
   - Request and result DTOs
+  - Commands/queries and their handlers (CQRS-style)
+  - CommandBus / QueryBus used by CLI + HTTP controllers
   - Orchestrates domain logic without depending on presentation
 
 - **Presentation** (`src/Presentation`)
@@ -22,6 +24,7 @@ This project is organized around a clean separation of domain logic, application
 ## Current Boundaries
 
 - Persistence uses Doctrine DBAL (no ORM) with custom hydrators.
+- Controllers validate input via DTOs in `src/Presentation/Input` before dispatching commands.
 - Fixtures remain available for testing and manual seeding.
 - The pipeline produces a `Tournament` with assigned `TournamentTarget`s.
 - The CLI prints the tournament output.
