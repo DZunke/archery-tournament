@@ -31,4 +31,6 @@ interface ArcheryGroundRepository
     public function addTarget(string $archeryGroundId, Target $target): void;
 
     public function removeTarget(string $targetId): void;
+
+    public function updateTargetImage(string $targetId, string $imagePath): void;
 }

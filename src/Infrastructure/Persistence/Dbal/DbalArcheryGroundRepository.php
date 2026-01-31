@@ -146,4 +146,12 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
     {
         $this->connection->executeStatement('DELETE FROM targets WHERE id = ?', [$targetId]);
     }
+
+    public function updateTargetImage(string $targetId, string $imagePath): void
+    {
+        $this->connection->executeStatement(
+            'UPDATE targets SET image = ? WHERE id = ?',
+            [$imagePath, $targetId],
+        );
+    }
 }

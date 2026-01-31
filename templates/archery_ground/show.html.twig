@@ -150,6 +150,16 @@
                         {% endif %}
                     </div>
                     <div class="table-actions">
+                        <button
+                            class="link js-edit-image"
+                            type="button"
+                            data-action="{{ path('archery_ground_update_target_image', {id: archeryGround.id, targetId: target.id}) }}"
+                            data-token="{{ csrf_token('archery_ground_update_target_image_' ~ archeryGround.id ~ '_' ~ target.id) }}"
+                            data-name="{{ target.name }}"
+                            data-image="{{ target.image }}"
+                        >
+                            Edit image
+                        </button>
                         <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_target_' ~ archeryGround.id ~ '_' ~ target.id) }}">
                             <button class="link" type="submit">Remove</button>
@@ -257,6 +267,24 @@
     </div>
 </section>
 
+<dialog id="target-image-dialog" class="modal">
+    <form method="post" enctype="multipart/form-data" id="target-image-form" class="modal__body">
+        <input type="hidden" name="_token" id="target-image-token">
+        <h3>Update image for <span id="target-image-name"></span></h3>
+        <p class="muted">Upload a new image to replace the existing target photo.</p>
+        <div class="modal__preview" id="target-image-preview-wrap" hidden>
+            <img id="target-image-preview" alt="">
+        </div>
+        <label class="field">
+            <span>New image</span>
+            <input type="file" name="image" accept="image/*" required>
+        </label>
+        <div class="modal__actions">
+            <button class="button ghost" type="button" data-dialog-close>Cancel</button>
+            <button class="button" type="submit">Update image</button>
+        </div>
+    </form>
+</dialog>
 <script>
 (() => {
     const input = document.getElementById('target-filter');
@@ -265,13 +293,86 @@
     const rows = Array.from(document.querySelectorAll('.target-row'));
     const countEl = document.getElementById('target-filter-count');
     const emptyEl = document.querySelector('.target-empty');
-    const total = rows.length;
 
-    if (!input || !select || !reset) {
-        return;
+    const dialog = document.getElementById('target-image-dialog');
+    const dialogForm = document.getElementById('target-image-form');
+    const dialogToken = document.getElementById('target-image-token');
+    const dialogName = document.getElementById('target-image-name');
+    const dialogPreview = document.getElementById('target-image-preview');
+    const dialogPreviewWrap = document.getElementById('target-image-preview-wrap');
+    const dialogClose = document.querySelector('[data-dialog-close]');
+
+    const openDialog = (button) => {
+        if (!dialog || !dialogForm || !dialogToken || !dialogName) {
+            return;
+        }
+
+        dialogForm.setAttribute('action', button.dataset.action || '');
+        dialogToken.value = button.dataset.token || '';
+        dialogName.textContent = button.dataset.name || 'Target';
+
+        if (dialogPreview && dialogPreviewWrap) {
+            if (button.dataset.image) {
+                dialogPreview.src = button.dataset.image;
+                dialogPreviewWrap.hidden = false;
+            } else {
+                dialogPreview.src = '';
+                dialogPreviewWrap.hidden = true;
+            }
+        }
+
+        if (typeof dialog.showModal === 'function') {
+            dialog.showModal();
+        } else {
+            dialog.classList.add('is-open');
+        }
+    };
+
+    const closeDialog = () => {
+        if (!dialog) {
+            return;
+        }
+
+        if (typeof dialog.close === 'function') {
+            dialog.close();
+        } else {
+            dialog.classList.remove('is-open');
+        }
+    };
+
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        const button = target.closest('.js-edit-image');
+        if (!button || !(button instanceof HTMLElement)) {
+            return;
+        }
+
+        event.preventDefault();
+        openDialog(button);
+    });
+
+    if (dialogClose) {
+        dialogClose.addEventListener('click', closeDialog);
     }
 
+    if (dialog) {
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog) {
+                closeDialog();
+            }
+        });
+    }
+
+    const total = rows.length;
     const update = () => {
+        if (!input || !select) {
+            return;
+        }
+
         const term = input.value.trim().toLowerCase();
         const type = select.value;
         let visible = 0;
@@ -301,15 +402,16 @@
         }
     };
 
-    input.addEventListener('input', update);
-    select.addEventListener('change', update);
-    reset.addEventListener('click', () => {
-        input.value = '';
-        select.value = '';
+    if (input && select && reset) {
+        input.addEventListener('input', update);
+        select.addEventListener('change', update);
+        reset.addEventListener('click', () => {
+            input.value = '';
+            select.value = '';
+            update();
+        });
         update();
-    });
-
-    update();
+    }
 
     const dropzone = document.querySelector('[data-dropzone]');
     if (dropzone instanceof HTMLElement) {
