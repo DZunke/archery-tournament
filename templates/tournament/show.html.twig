@@ -115,7 +115,8 @@
                     </div>
                 {% endfor %}
             {% else %}
-                {% for assignment in tournament.targets %}
+                {% set assignments = sortedTargets is defined ? sortedTargets : tournament.targets %}
+                {% for assignment in assignments %}
                     {% set rowIndex = loop.index0 %}
                     <div class="table-row assignment-row">
                         <input type="number" name="assignments[{{ rowIndex }}][round]" value="{{ assignment.round }}" min="1" required>

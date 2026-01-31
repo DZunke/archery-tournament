@@ -13,7 +13,12 @@ use App\Domain\Entity\TournamentTarget;
 use App\Domain\Entity\TournamentTargetCollection;
 use App\Domain\Repository\TournamentRepository;
 use App\Domain\ValueObject\StakeDistances;
+use App\Domain\ValueObject\TargetType;
 
+use function array_fill_keys;
+use function array_map;
+use function count;
+use function intdiv;
 use function min;
 
 final readonly class UpdateTournamentTargetsHandler
@@ -190,13 +195,63 @@ final readonly class UpdateTournamentTargetsHandler
             ));
         }
 
+        $requiredTypes = $ruleset->requiredTargetTypes();
+        $groupCount    = count($requiredTypes);
+        if ($groupCount === 0) {
+            $issues[] = new TournamentValidationIssue(
+                rule: 'Target Group Balance',
+                message: 'No target groups are configured for this ruleset.',
+            );
+        } else {
+            $expectedTotal = $tournament->numberOfTargets();
+            if ($expectedTotal % $groupCount !== 0) {
+                $issues[] = new TournamentValidationIssue(
+                    rule: 'Target Group Balance',
+                    message: 'Number of targets (' . $expectedTotal . ') must be divisible by the number of target groups (' . $groupCount . ').',
+                    context: ['expected' => $expectedTotal, 'groups' => $groupCount],
+                );
+            } elseif ($collection->count() === $expectedTotal) {
+                $expectedPerGroup = intdiv($expectedTotal, $groupCount);
+                $counts           = array_fill_keys(
+                    array_map(static fn (TargetType $type): string => $type->value, $requiredTypes),
+                    0,
+                );
+
+                foreach ($collection as $assignment) {
+                    $type = $assignment->target()->type();
+                    if (! isset($counts[$type->value])) {
+                        continue;
+                    }
+
+                    $counts[$type->value]++;
+                }
+
+                foreach ($requiredTypes as $type) {
+                    $actual = $counts[$type->value] ?? 0;
+                    if ($actual === $expectedPerGroup) {
+                        continue;
+                    }
+
+                    $issues[] = new TournamentValidationIssue(
+                        rule: 'Target Group Balance',
+                        message: 'Target group "' . $type->name . '" must be assigned ' . $expectedPerGroup . ' times but is assigned ' . $actual . '.',
+                        context: ['group' => $type->value, 'expected' => $expectedPerGroup, 'actual' => $actual],
+                    );
+                }
+            }
+        }
+
         if ($collection->count() > $tournament->numberOfTargets()) {
+            $expected = $tournament->numberOfTargets();
+            $actual   = $collection->count();
+            $overage  = $actual - $expected;
             $issues[] = new TournamentValidationIssue(
                 rule: 'Target Count',
-                message: 'Number of assignments exceeds the configured target count.',
+                message: 'Assignments exceed configured target count: expected ' . $expected . ', got ' . $actual . '. Remove ' . $overage . ' assignment(s).',
                 context: [
-                    'expected' => $tournament->numberOfTargets(),
-                    'actual' => $collection->count(),
+                    'expected' => $expected,
+                    'actual' => $actual,
+                    'overage' => $overage,
                 ],
             );
         }
