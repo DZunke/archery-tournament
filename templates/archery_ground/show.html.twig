@@ -164,11 +164,87 @@
 
 <section class="panel panel-spaced">
     <div class="panel-header">
-        <h2>Tournament Generation</h2>
-        <span class="badge">Coming soon</span>
+        <h2>Tournaments</h2>
+        <span class="badge">{{ tournaments|default([])|length }}</span>
     </div>
-    <p class="muted">This will use the configured lanes and targets to generate tournaments directly in the UI. For now, use the CLI command.</p>
-    <a class="button ghost" href="{{ path('archery_ground_index') }}" aria-disabled="true">Generate tournament (soon)</a>
+    <p class="muted">Create and manage tournaments for this archery ground. Upcoming tournaments are shown first.</p>
+    <div class="inline-actions">
+        <a class="button" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id, mode: 'auto'}) }}">Auto-generate tournament</a>
+        <a class="button ghost" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id, mode: 'manual'}) }}">Manual tournament</a>
+    </div>
+
+    {% set today = "now"|date('Y-m-d') %}
+    {% set soon = "now"|date_modify('+14 days')|date('Y-m-d') %}
+
+    {% if nextTournament is defined and nextTournament %}
+        {% set nextDate = nextTournament.eventDate|date('Y-m-d') %}
+        {% if nextDate < today %}
+            {% set nextStatus = 'past' %}
+        {% elseif nextDate == today %}
+            {% set nextStatus = 'today' %}
+        {% elseif nextDate <= soon %}
+            {% set nextStatus = 'upcoming' %}
+        {% else %}
+            {% set nextStatus = 'future' %}
+        {% endif %}
+        <div class="next-tournament">
+            <div>
+                <strong>Next tournament:</strong> {{ nextTournament.name }} · {{ nextTournament.eventDate|date('Y-m-d') }}
+                <span class="status-pill {{ nextStatus }}">{{ nextStatus|capitalize }}</span>
+            </div>
+            <div class="next-tournament__actions">
+                <a class="button ghost" href="{{ path('tournament_show', {id: nextTournament.id}) }}">Manage</a>
+                <a class="button ghost" href="{{ path('tournament_view', {id: nextTournament.id}) }}">View mode</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="grid tournament-grid">
+        {% for tournament in tournaments|default([]) %}
+            {% set eventDate = tournament.eventDate|date('Y-m-d') %}
+            {% if eventDate < today %}
+                {% set status = 'past' %}
+            {% elseif eventDate == today %}
+                {% set status = 'today' %}
+            {% elseif eventDate <= soon %}
+                {% set status = 'upcoming' %}
+            {% else %}
+                {% set status = 'future' %}
+            {% endif %}
+            <article class="card tournament-card tournament-card--{{ status }}">
+                <div class="tournament-card__top">
+                    <div>
+                        <h2>{{ tournament.name }}</h2>
+                        <p class="muted">{{ tournament.eventDate|date('Y-m-d') }}</p>
+                    </div>
+                    <div class="tournament-card__tags">
+                        <span class="status-pill {{ status }}">{{ status|capitalize }}</span>
+                        <span class="badge">{{ tournament.ruleset.value }}</span>
+                    </div>
+                </div>
+                <div class="tournament-card__stats">
+                    <div class="tournament-card__stat">
+                        <strong>{{ tournament.numberOfTargets }}</strong>
+                        <span>Targets</span>
+                    </div>
+                    <div class="tournament-card__stat">
+                        <strong>{{ tournament.targets|length }}</strong>
+                        <span>Assigned</span>
+                    </div>
+                </div>
+                <div class="tournament-card__actions">
+                    <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Manage</a>
+                    <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">
+                <h2>No tournaments yet</h2>
+                <p>Create your first tournament for this archery ground.</p>
+                <a class="button" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id}) }}">Create tournament</a>
+            </div>
+        {% endfor %}
+    </div>
 </section>
 
 <script>

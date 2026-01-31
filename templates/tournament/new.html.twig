@@ -32,7 +32,7 @@
                 <select name="archery_ground_id" required>
                     <option value="">Select a ground</option>
                     {% for ground in grounds %}
-                        <option value="{{ ground.id }}">{{ ground.name }}</option>
+                        <option value="{{ ground.id }}" {% if selectedGroundId is defined and selectedGroundId == ground.id %}selected{% endif %}>{{ ground.name }}</option>
                     {% endfor %}
                 </select>
             </label>
@@ -55,11 +55,11 @@
                 <span>Mode</span>
                 <div class="choice-group">
                     <label class="choice">
-                        <input type="radio" name="mode" value="auto" checked>
+                        <input type="radio" name="mode" value="auto" {% if selectedMode is not defined or selectedMode == 'auto' %}checked{% endif %}>
                         Auto-generate (editable)
                     </label>
                     <label class="choice">
-                        <input type="radio" name="mode" value="manual">
+                        <input type="radio" name="mode" value="manual" {% if selectedMode is defined and selectedMode == 'manual' %}checked{% endif %}>
                         Manual (start empty)
                     </label>
                 </div>

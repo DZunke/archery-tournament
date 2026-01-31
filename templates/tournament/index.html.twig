@@ -13,30 +13,73 @@
     </div>
 </section>
 
-<div class="grid">
+<form class="filter-bar" method="get" action="{{ path('tournament_index') }}">
+    <label class="field">
+        <span>Name</span>
+        <input type="text" name="name" placeholder="Search tournaments" value="{{ nameFilter|default('') }}">
+    </label>
+    <label class="field">
+        <span>Archery ground</span>
+        <select name="archery_ground_id">
+            <option value="">All grounds</option>
+            {% for ground in grounds|default([]) %}
+                <option value="{{ ground.id }}" {% if groundFilter is defined and groundFilter == ground.id %}selected{% endif %}>{{ ground.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="field">
+        <span>Date</span>
+        <input type="date" name="date" value="{{ dateFilter|default('') }}">
+    </label>
+    <button class="button ghost" type="submit">Filter</button>
+    <a class="button ghost" href="{{ path('tournament_index') }}">Reset</a>
+</form>
+<p class="filter-count">
+    {% if totalCount is defined %}
+        Showing {{ filteredCount|default(0) }} of {{ totalCount }}
+    {% endif %}
+</p>
+
+{% set today = "now"|date('Y-m-d') %}
+{% set soon = "now"|date_modify('+14 days')|date('Y-m-d') %}
+
+<div class="grid tournament-grid">
     {% for tournament in tournaments %}
-        <article class="card">
-            <div class="card-header">
-                <h2>{{ tournament.name }}</h2>
-                <span class="badge">{{ tournament.ruleset.value }}</span>
+        {% set eventDate = tournament.eventDate|date('Y-m-d') %}
+        {% if eventDate < today %}
+            {% set status = 'past' %}
+        {% elseif eventDate == today %}
+            {% set status = 'today' %}
+        {% elseif eventDate <= soon %}
+            {% set status = 'upcoming' %}
+        {% else %}
+            {% set status = 'future' %}
+        {% endif %}
+        <article class="card tournament-card tournament-card--{{ status }}">
+            <div class="tournament-card__top">
+                <div>
+                    <h2>{{ tournament.name }}</h2>
+                    <p class="muted">{{ tournament.eventDate|date('Y-m-d') }}</p>
+                </div>
+                <div class="tournament-card__tags">
+                    <span class="status-pill {{ status }}">{{ status|capitalize }}</span>
+                    <span class="badge">{{ tournament.ruleset.value }}</span>
+                </div>
             </div>
-            <div class="card-meta">
-                <div>
-                    <strong>{{ tournament.eventDate|date('Y-m-d') }}</strong>
-                    Date
-                </div>
-                <div>
+            <div class="tournament-card__stats">
+                <div class="tournament-card__stat">
                     <strong>{{ tournament.numberOfTargets }}</strong>
-                    Targets
+                    <span>Targets</span>
                 </div>
-                <div>
+                <div class="tournament-card__stat">
                     <strong>{{ tournament.targets|length }}</strong>
-                    Assigned
+                    <span>Assigned</span>
                 </div>
             </div>
             <p class="muted">Ground: {{ tournament.archeryGround.name }}</p>
-            <div class="card-actions">
+            <div class="tournament-card__actions">
                 <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Manage</a>
+                <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
             </div>
         </article>
     {% else %}
