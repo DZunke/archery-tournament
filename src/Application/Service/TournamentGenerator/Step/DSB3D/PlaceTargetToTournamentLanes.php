@@ -7,7 +7,6 @@ namespace App\Application\Service\TournamentGenerator\Step\DSB3D;
 use App\Application\Service\TournamentGenerator\DTO\TournamentResult;
 use App\Application\Service\TournamentGenerator\Exception\TournamentGenerationFailed;
 use App\Application\Service\TournamentGenerator\Step\TournamentGenerationStep;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
 use function array_pop;
@@ -17,10 +16,6 @@ use function shuffle;
 #[AsTaggedItem(priority: 470)]
 final class PlaceTargetToTournamentLanes implements TournamentGenerationStep
 {
-    public function __construct(private readonly LoggerInterface $logger)
-    {
-    }
-
     public function getName(): string
     {
         return 'Place Targets to selected Tournament Lanes';
@@ -47,8 +42,11 @@ final class PlaceTargetToTournamentLanes implements TournamentGenerationStep
 
             shuffle($availableTargets);
             foreach ($laneConfiguration['lanes'] as $index => $singleLaneConfig) {
-                $assignedTarget                                                                             = array_pop($availableTargets);
-                $tournamentResult->selectedLanesPerTargetGroup[$groupIdentifier]['lanes'][$index]['target'] = $assignedTarget;
+                $assignedTarget                                                                   = array_pop($availableTargets);
+                $tournamentResult->selectedLanesPerTargetGroup[$groupIdentifier]['lanes'][$index] = [
+                    'lane' => $singleLaneConfig['lane'],
+                    'target' => $assignedTarget,
+                ];
 
                 shuffle($availableTargets);
             }

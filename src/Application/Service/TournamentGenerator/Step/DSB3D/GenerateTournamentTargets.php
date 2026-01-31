@@ -19,7 +19,6 @@ use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
 use function ceil;
 use function floor;
-use function max;
 use function min;
 use function random_int;
 use function shuffle;
@@ -129,8 +128,8 @@ final readonly class GenerateTournamentTargets implements TournamentGenerationSt
         $stakes = [];
 
         foreach ($ranges as $stake => $range) {
-            $minDistance = (float) $range['min'];
-            $maxDistance = (float) $range['max'];
+            $minDistance = $range['min'];
+            $maxDistance = $range['max'];
             $laneMax     = $lane->maxDistance();
             $allowedMax  = min($maxDistance, $laneMax);
 
@@ -151,6 +150,6 @@ final readonly class GenerateTournamentTargets implements TournamentGenerationSt
 
     private function determineTargetDistance(StakeDistances $stakes): int
     {
-        return max($stakes->all());
+        return $stakes->max();
     }
 }

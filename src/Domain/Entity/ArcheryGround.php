@@ -11,6 +11,7 @@ use Symfony\Component\Uid\Uuid;
 use Webmozart\Assert\Assert;
 
 use function array_filter;
+use function array_values;
 use function count;
 
 final class ArcheryGround
@@ -56,10 +57,10 @@ final class ArcheryGround
     /** @return list<Target> */
     public function targetStorageByType(TargetType $targetType): array
     {
-        return array_filter(
+        return array_values(array_filter(
             $this->targetStorage,
             static fn (Target $target) => $target->type() === $targetType,
-        );
+        ));
     }
 
     public function addTarget(Target $target): void

@@ -51,4 +51,18 @@ final class StakeDistances implements IteratorAggregate
     {
         return count($this->distances);
     }
+
+    public function max(): int
+    {
+        $maxDistance = null;
+        foreach ($this->distances as $distance) {
+            if ($maxDistance !== null && $distance <= $maxDistance) {
+                continue;
+            }
+
+            $maxDistance = $distance;
+        }
+
+        return $maxDistance;
+    }
 }
