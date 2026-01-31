@@ -1,0 +1,33 @@
+# Architecture Overview
+
+This project is organized around a clean separation of domain logic, application orchestration, and presentation (CLI). The core generator is intentionally step-based to support growth and configurability.
+
+## Layers
+
+- **Domain** (`src/Domain`)
+  - Entities: `Tournament`, `TournamentTarget`, `ArcheryGround`, `Target`
+  - Value objects: `Ruleset`, `TargetType`, `StakeDistances`
+  - Domain rules are expressed through value objects and entities.
+
+- **Application** (`src/Application`)
+  - Generation pipeline and steps
+  - Request and result DTOs
+  - Orchestrates domain logic without depending on presentation
+
+- **Presentation** (`src/Presentation`)
+  - Symfony Console commands
+  - Maps user input into generation requests
+
+## Current Boundaries
+
+- The generator does not persist data yet. Fixtures are used to simulate archery grounds.
+- The pipeline produces a `Tournament` with assigned `TournamentTarget`s.
+- The CLI prints the tournament output.
+
+## Planned Growth
+
+- Persistence layer (database + repositories)
+- User interface (web or desktop)
+- Export formats (PDF, CSV)
+
+When adding new subsystems, keep these boundaries: domain rules in Domain, orchestration in Application, I/O in Presentation.

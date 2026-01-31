@@ -1,0 +1,18 @@
+# Project Documentation
+
+This directory contains the living documentation for the project. Start here, then dive into specific areas.
+
+## Start Here
+
+- `../README.md`: quick project overview and how to run the generator
+
+## Core Guides
+
+- `tournament-generation.md`: purpose, architecture, flow, and extension points for the generation pipeline
+- `architecture.md`: system boundaries and current layering
+- `development.md`: local development setup and quality checks
+
+## How to Extend the Docs
+
+- Add new documents for major subsystems (persistence, UI, exports)
+- Keep documents focused and link back here for discoverability
