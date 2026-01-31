@@ -237,6 +237,24 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.filter-bar .field {
+  min-width: 180px;
+}
+
+.filter-count {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
 .field {
   display: grid;
   gap: 6px;

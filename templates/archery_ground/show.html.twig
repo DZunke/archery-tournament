@@ -90,6 +90,24 @@
             <button class="button" type="submit">Add target</button>
         </form>
 
+        <div class="filter-bar" role="search" aria-label="Filter targets">
+            <label class="field">
+                <span>Search</span>
+                <input type="text" id="target-filter" placeholder="Search by name">
+            </label>
+            <label class="field">
+                <span>Type</span>
+                <select id="target-type-filter">
+                    <option value="">All types</option>
+                    {% for type in targetTypes %}
+                        <option value="{{ type.value }}">{{ type.value }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button class="button ghost" type="button" id="target-filter-reset">Reset</button>
+        </div>
+        <p class="filter-count" id="target-filter-count"></p>
+
         <div class="table targets">
             <div class="table-row table-head">
                 <div>Name</div>
@@ -98,7 +116,7 @@
                 <div></div>
             </div>
             {% for target in archeryGround.targetStorage %}
-                <div class="table-row">
+                <div class="table-row target-row" data-name="{{ target.name|lower }}" data-type="{{ target.type.value }}">
                     <div>{{ target.name }}</div>
                     <div>{{ target.type.value }}</div>
                     <div class="image-cell">
@@ -124,6 +142,9 @@
                     <div>No targets yet.</div>
                 </div>
             {% endfor %}
+            <div class="table-row empty target-empty" style="display: none;">
+                <div>No targets match your filter.</div>
+            </div>
         </div>
     </section>
 </div>
@@ -136,4 +157,60 @@
     <p class="muted">This will use the configured lanes and targets to generate tournaments directly in the UI. For now, use the CLI command.</p>
     <a class="button ghost" href="{{ path('archery_ground_index') }}" aria-disabled="true">Generate tournament (soon)</a>
 </section>
+
+<script>
+(() => {
+    const input = document.getElementById('target-filter');
+    const select = document.getElementById('target-type-filter');
+    const reset = document.getElementById('target-filter-reset');
+    const rows = Array.from(document.querySelectorAll('.target-row'));
+    const countEl = document.getElementById('target-filter-count');
+    const emptyEl = document.querySelector('.target-empty');
+    const total = rows.length;
+
+    if (!input || !select || !reset) {
+        return;
+    }
+
+    const update = () => {
+        const term = input.value.trim().toLowerCase();
+        const type = select.value;
+        let visible = 0;
+
+        rows.forEach((row) => {
+            const name = row.dataset.name || '';
+            const rowType = row.dataset.type || '';
+            const matchesName = term === '' || name.includes(term);
+            const matchesType = type === '' || rowType === type;
+            const show = matchesName && matchesType;
+            row.style.display = show ? '' : 'none';
+            if (show) {
+                visible += 1;
+            }
+        });
+
+        if (countEl) {
+            if (total === 0) {
+                countEl.textContent = '';
+            } else {
+                countEl.textContent = `Showing ${visible} of ${total}`;
+            }
+        }
+
+        if (emptyEl) {
+            emptyEl.style.display = total > 0 && visible === 0 ? '' : 'none';
+        }
+    };
+
+    input.addEventListener('input', update);
+    select.addEventListener('change', update);
+    reset.addEventListener('click', () => {
+        input.value = '';
+        select.value = '';
+        update();
+    });
+
+    update();
+})();
+</script>
 {% endblock %}
