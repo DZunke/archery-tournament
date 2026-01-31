@@ -26,6 +26,9 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
     /** @var list<string> */
     public array $removedLanes = [];
 
+    /** @var list<array{archeryGroundId: string, laneId: string, name: string, maxDistance: float}> */
+    public array $updatedLanes = [];
+
     /** @var list<array{archeryGroundId: string, target: Target}> */
     public array $addedTargets = [];
 
@@ -77,6 +80,20 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
     public function removeShootingLane(string $laneId): void
     {
         $this->removedLanes[] = $laneId;
+    }
+
+    public function updateShootingLane(
+        string $archeryGroundId,
+        string $laneId,
+        string $name,
+        float $maxDistance,
+    ): void {
+        $this->updatedLanes[] = [
+            'archeryGroundId' => $archeryGroundId,
+            'laneId' => $laneId,
+            'name' => $name,
+            'maxDistance' => $maxDistance,
+        ];
     }
 
     public function addTarget(string $archeryGroundId, Target $target): void

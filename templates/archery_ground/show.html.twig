@@ -53,6 +53,16 @@
                     <div>{{ lane.name }}</div>
                     <div>{{ lane.maxDistance }} m</div>
                     <div class="table-actions">
+                        <button
+                            class="link js-edit-lane"
+                            type="button"
+                            data-action="{{ path('archery_ground_update_lane', {id: archeryGround.id, laneId: lane.id}) }}"
+                            data-token="{{ csrf_token('archery_ground_update_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}"
+                            data-name="{{ lane.name }}"
+                            data-distance="{{ lane.maxDistance }}"
+                        >
+                            Edit
+                        </button>
                         <form method="post" action="{{ path('archery_ground_delete_lane', {id: archeryGround.id, laneId: lane.id}) }}" onsubmit="return confirm('Remove this lane?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}">
                             <button class="link" type="submit">Remove</button>
@@ -267,6 +277,25 @@
     </div>
 </section>
 
+<dialog id="lane-dialog" class="modal">
+    <form method="post" id="lane-form" class="modal__body">
+        <input type="hidden" name="_token" id="lane-token">
+        <h3>Edit lane <span id="lane-name-label"></span></h3>
+        <label class="field">
+            <span>Lane name</span>
+            <input type="text" name="name" id="lane-name-input" required>
+        </label>
+        <label class="field">
+            <span>Max distance (m)</span>
+            <input type="number" name="max_distance" id="lane-distance-input" min="0.1" step="0.1" required>
+        </label>
+        <div class="modal__actions">
+            <button class="button ghost" type="button" data-lane-close>Cancel</button>
+            <button class="button" type="submit">Save changes</button>
+        </div>
+    </form>
+</dialog>
+
 <dialog id="target-image-dialog" class="modal">
     <form method="post" enctype="multipart/form-data" id="target-image-form" class="modal__body">
         <input type="hidden" name="_token" id="target-image-token">
@@ -301,6 +330,13 @@
     const dialogPreview = document.getElementById('target-image-preview');
     const dialogPreviewWrap = document.getElementById('target-image-preview-wrap');
     const dialogClose = document.querySelector('[data-dialog-close]');
+    const laneDialog = document.getElementById('lane-dialog');
+    const laneForm = document.getElementById('lane-form');
+    const laneToken = document.getElementById('lane-token');
+    const laneNameLabel = document.getElementById('lane-name-label');
+    const laneNameInput = document.getElementById('lane-name-input');
+    const laneDistanceInput = document.getElementById('lane-distance-input');
+    const laneClose = document.querySelector('[data-lane-close]');
 
     const openDialog = (button) => {
         if (!dialog || !dialogForm || !dialogToken || !dialogName) {
@@ -340,9 +376,47 @@
         }
     };
 
+    const openLaneDialog = (button) => {
+        if (!laneDialog || !laneForm || !laneToken || !laneNameInput || !laneDistanceInput) {
+            return;
+        }
+
+        laneForm.setAttribute('action', button.dataset.action || '');
+        laneToken.value = button.dataset.token || '';
+        const laneName = button.dataset.name || 'Lane';
+        laneNameLabel.textContent = laneName;
+        laneNameInput.value = laneName;
+        laneDistanceInput.value = button.dataset.distance || '';
+
+        if (typeof laneDialog.showModal === 'function') {
+            laneDialog.showModal();
+        } else {
+            laneDialog.classList.add('is-open');
+        }
+    };
+
+    const closeLaneDialog = () => {
+        if (!laneDialog) {
+            return;
+        }
+
+        if (typeof laneDialog.close === 'function') {
+            laneDialog.close();
+        } else {
+            laneDialog.classList.remove('is-open');
+        }
+    };
+
     document.addEventListener('click', (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        const laneButton = target.closest('.js-edit-lane');
+        if (laneButton && laneButton instanceof HTMLElement) {
+            event.preventDefault();
+            openLaneDialog(laneButton);
             return;
         }
 
@@ -363,6 +437,18 @@
         dialog.addEventListener('click', (event) => {
             if (event.target === dialog) {
                 closeDialog();
+            }
+        });
+    }
+
+    if (laneClose) {
+        laneClose.addEventListener('click', closeLaneDialog);
+    }
+
+    if (laneDialog) {
+        laneDialog.addEventListener('click', (event) => {
+            if (event.target === laneDialog) {
+                closeLaneDialog();
             }
         });
     }

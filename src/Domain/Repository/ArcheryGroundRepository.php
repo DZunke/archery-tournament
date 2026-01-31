@@ -28,6 +28,13 @@ interface ArcheryGroundRepository
 
     public function removeShootingLane(string $laneId): void;
 
+    public function updateShootingLane(
+        string $archeryGroundId,
+        string $laneId,
+        string $name,
+        float $maxDistance,
+    ): void;
+
     public function addTarget(string $archeryGroundId, Target $target): void;
 
     public function removeTarget(string $targetId): void;

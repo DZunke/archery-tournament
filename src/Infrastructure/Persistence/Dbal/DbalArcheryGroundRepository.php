@@ -14,6 +14,9 @@ use App\Infrastructure\Persistence\Dbal\Hydrator\TargetHydrator;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Uid\Uuid;
 
+use function strnatcasecmp;
+use function usort;
+
 final readonly class DbalArcheryGroundRepository implements ArcheryGroundRepository
 {
     public function __construct(
@@ -67,7 +70,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             'name' => (string) $row['name'],
         ];
         $lanesRows = $this->connection->fetchAllAssociative(
-            'SELECT id, name, max_distance FROM shooting_lanes WHERE archery_ground_id = ? ORDER BY name',
+            'SELECT id, name, max_distance FROM shooting_lanes WHERE archery_ground_id = ?',
             [$id],
         );
 
@@ -81,6 +84,11 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             /** @var array{id: string, name: string, max_distance: float|string} $laneRow */
             $lanes[] = $this->shootingLaneHydrator->hydrate($laneRow);
         }
+
+        usort(
+            $lanes,
+            static fn (ShootingLane $a, ShootingLane $b): int => strnatcasecmp($a->name(), $b->name()),
+        );
 
         $targets = [];
         foreach ($targetRows as $targetRow) {
@@ -129,6 +137,18 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
     public function removeShootingLane(string $laneId): void
     {
         $this->connection->executeStatement('DELETE FROM shooting_lanes WHERE id = ?', [$laneId]);
+    }
+
+    public function updateShootingLane(
+        string $archeryGroundId,
+        string $laneId,
+        string $name,
+        float $maxDistance,
+    ): void {
+        $this->connection->executeStatement(
+            'UPDATE shooting_lanes SET name = ?, max_distance = ? WHERE id = ? AND archery_ground_id = ?',
+            [$name, $maxDistance, $laneId, $archeryGroundId],
+        );
     }
 
     public function addTarget(string $archeryGroundId, Target $target): void

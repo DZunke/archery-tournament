@@ -22,7 +22,8 @@
     <p class="muted">Designed for quick reading on desktop and mobile.</p>
     {% set roundCounts = {} %}
     {% for card in assignmentCards|default([]) %}
-        {% set roundCounts = roundCounts|merge({ (card.round): (roundCounts[card.round]|default(0) + 1) }) %}
+        {% set roundKey = 'round_' ~ card.round %}
+        {% set roundCounts = roundCounts|merge({ (roundKey): (roundCounts[roundKey]|default(0) + 1) }) %}
     {% endfor %}
 
     {% if assignmentCards|default([]) is empty %}
@@ -46,7 +47,7 @@
                     aria-controls="round-panel-{{ round }}"
                 >
                     Round {{ round }}
-                    <span class="round-count">{{ roundCounts[round] }} targets</span>
+                    <span class="round-count">{{ roundCounts['round_' ~ round]|default(0) }} targets</span>
                 </button>
             {% endfor %}
         </div>
