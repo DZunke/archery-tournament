@@ -11,6 +11,7 @@ use App\Domain\Entity\ArcheryGround\ShootingLane;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
+use function array_map;
 use function ceil;
 use function count;
 use function shuffle;
@@ -47,8 +48,8 @@ final readonly class PlaceTargetTypes implements TournamentGenerationStep
         $byMinDistanceOrderedTargetTypes = $tournamentResult->ruleset->targetTypesOrderedByMaxDistance();
         $availableLanes                  = $tournamentResult->availableLanes;
         foreach ($byMinDistanceOrderedTargetTypes as $targetType) {
-            $minDistance = $tournamentResult->ruleset->getMinStakeDistance($targetType);
-            $this->logger->debug('Placing target type "' . $targetType->name . '" with minimum distance ' . $minDistance . ' meters.');
+            $minDistance = $tournamentResult->ruleset->getRequiredMinStakeDistance($targetType);
+            $this->logger->debug('Placing target type "' . $targetType->name . '" with required minimum distance ' . $minDistance . ' meters.');
 
             // Randomize the left available lanes
             shuffle($availableLanes);

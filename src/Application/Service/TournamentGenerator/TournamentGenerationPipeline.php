@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Service\TournamentGenerator;
 
+use App\Application\Service\TournamentGenerator\DTO\TournamentGenerationRequest;
 use App\Application\Service\TournamentGenerator\DTO\TournamentResult;
 use App\Application\Service\TournamentGenerator\Step\TournamentGenerationStep;
-use App\Domain\Entity\ArcheryGround;
 use App\Domain\Entity\Tournament;
-use App\Domain\ValueObject\Ruleset;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
@@ -21,15 +20,21 @@ final class TournamentGenerationPipeline
     ) {
     }
 
-    public function generate(ArcheryGround $archeryGround, Ruleset $ruleset, int $amountOfTargets): Tournament
+    public function generate(TournamentGenerationRequest $request): Tournament
     {
         $this->logger->debug('Starting tournament generation pipeline', [
-            'archery_ground' => $archeryGround->name(),
-            'ruleset' => $ruleset->name(),
-            'amount_of_targets' => $amountOfTargets,
+            'archery_ground' => $request->archeryGround->name(),
+            'ruleset' => $request->ruleset->name(),
+            'amount_of_targets' => $request->amountOfTargets,
+            'randomize_stakes_between_rounds' => $request->randomizeStakesBetweenRounds,
         ]);
 
-        $tournamentResult = new TournamentResult($archeryGround, $ruleset, $amountOfTargets);
+        $tournamentResult = new TournamentResult(
+            $request->archeryGround,
+            $request->ruleset,
+            $request->amountOfTargets,
+            $request->randomizeStakesBetweenRounds,
+        );
         foreach ($this->steps as $step) {
             if (! $step->supports($tournamentResult)) {
                 continue; // Silently filter out unqualified steps
@@ -44,11 +49,20 @@ final class TournamentGenerationPipeline
         }
 
         $this->logger->debug('Finished tournament generation pipeline', [
-            'archery_ground' => $archeryGround->name(),
-            'ruleset' => $ruleset->name(),
-            'amount_of_targets' => $amountOfTargets,
+            'archery_ground' => $request->archeryGround->name(),
+            'ruleset' => $request->ruleset->name(),
+            'amount_of_targets' => $request->amountOfTargets,
+            'randomize_stakes_between_rounds' => $request->randomizeStakesBetweenRounds,
         ]);
 
-        return Tournament::create('Generated Tournament', $ruleset, $archeryGround, $amountOfTargets);
+        $tournament = Tournament::create(
+            'Generated Tournament',
+            $request->ruleset,
+            $request->archeryGround,
+            $request->amountOfTargets,
+        );
+        $tournament->replaceTargets($tournamentResult->targets);
+
+        return $tournament;
     }
 }

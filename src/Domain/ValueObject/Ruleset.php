@@ -84,6 +84,23 @@ enum Ruleset: string
         return min($maxDistances);
     }
 
+    /**
+     * Returns the minimum lane distance required to support all stakes of a target type.
+     */
+    public function getRequiredMinStakeDistance(TargetType $targetType): float
+    {
+        Assert::true(
+            in_array($targetType, $this->allowedTargetTypes(), true),
+            'Target type is not allowed for this ruleset.',
+        );
+
+        $ranges       = $this->stakeDistanceRanges($targetType);
+        $minDistances = array_map(static fn (array $range) => $range['min'], $ranges);
+        assert(count($minDistances) > 0);
+
+        return max($minDistances);
+    }
+
     /** @return array<string, array{min: float, max: float}> */
     public function stakeDistanceRanges(TargetType $targetType): array
     {

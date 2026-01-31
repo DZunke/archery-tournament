@@ -10,6 +10,7 @@ use App\Domain\ValueObject\TargetType;
 use Symfony\Component\Uid\Uuid;
 use Webmozart\Assert\Assert;
 
+use function array_filter;
 use function count;
 
 final class ArcheryGround

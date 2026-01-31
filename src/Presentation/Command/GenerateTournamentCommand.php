@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Presentation\Command;
 
 use App\Application\Query\GetArcheryGroundQuery;
+use App\Application\Service\TournamentGenerator\DTO\TournamentGenerationRequest;
 use App\Application\Service\TournamentGenerator\TournamentGenerationPipeline;
 use App\Domain\ValueObject\Ruleset;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -27,8 +29,15 @@ final class GenerateTournamentCommand
     ) {
     }
 
-    public function __invoke(SymfonyStyle $io): int
-    {
+    public function __invoke(
+        SymfonyStyle $io,
+        #[Option(
+            name: 'randomize-stakes-between-rounds',
+            shortcut: 'r',
+            description: 'Randomize stake distances between rounds while keeping targets fixed.',
+        )]
+        bool $randomizeStakesBetweenRounds = false,
+    ): int {
         $io->title('Generate Tournament Command');
 
         // todo: ask and fetch the correct archery ground to use
@@ -39,16 +48,19 @@ final class GenerateTournamentCommand
         $ruleset = Ruleset::from('DSB_3D');
 
         $table = new Table($io);
-        $table->setHeaders(['Archery Ground', 'Number of Targets', 'Ruleset']);
+        $table->setHeaders(['Archery Ground', 'Number of Targets', 'Ruleset', 'Randomize Stakes']);
         $table->setRows([
-            [$archeryGround->name(), $amountOfTargets, $ruleset->value],
+            [$archeryGround->name(), $amountOfTargets, $ruleset->value, $randomizeStakesBetweenRounds ? 'yes' : 'no'],
         ]);
         $table->render();
 
         $tournament = $this->tournamentGenerationPipeline->generate(
-            archeryGround: $archeryGround,
-            ruleset: $ruleset,
-            amountOfTargets: $amountOfTargets,
+            new TournamentGenerationRequest(
+                archeryGround: $archeryGround,
+                ruleset: $ruleset,
+                amountOfTargets: $amountOfTargets,
+                randomizeStakesBetweenRounds: $randomizeStakesBetweenRounds,
+            ),
         );
 
         $assignments = $tournament->targets();
