@@ -237,6 +237,26 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.choice-group {
+  display: grid;
+  gap: 8px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
 .dropzone {
   position: relative;
   display: grid;
@@ -358,6 +378,24 @@ a {
 
 .table.lanes .table-row {
   grid-template-columns: 1.5fr 1fr auto;
+}
+
+.table.tournament-targets .table-row {
+  grid-template-columns: 0.6fr 1.4fr 1.6fr repeat(3, 0.8fr) auto;
+  align-items: center;
+}
+
+.table.tournament-targets input,
+.table.tournament-targets select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.table.tournament-targets .link {
+  justify-self: flex-end;
 }
 
 .table-row.table-head {

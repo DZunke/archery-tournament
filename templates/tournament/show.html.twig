@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ tournament.name }} · Tournament{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>{{ tournament.name }}</h1>
+        <p class="muted">Ground: {{ archeryGround.name }} · {{ tournament.eventDate|date('Y-m-d') }}</p>
+    </div>
+    <div class="inline-actions">
+        <a class="button ghost" href="{{ path('tournament_index') }}">Back</a>
+        <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
+            <button class="button danger" type="submit">Delete</button>
+        </form>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Generator</h2>
+        <span class="badge">{{ tournament.ruleset.value }}</span>
+    </div>
+    <p class="muted">Auto-generated tournaments can be edited below. You can also regenerate the assignments.</p>
+    <form method="post" action="{{ path('tournament_regenerate', {id: tournament.id}) }}" class="form form-inline">
+        <label class="choice">
+            <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
+            Randomize stakes between rounds
+        </label>
+        <button class="button ghost" type="submit">Regenerate assignments</button>
+    </form>
+</section>
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Assignments</h2>
+        <span class="badge">{{ tournament.targets|length }} / {{ tournament.numberOfTargets }}</span>
+    </div>
+    <form method="post" action="{{ path('tournament_update_targets', {id: tournament.id}) }}" class="form">
+        <div class="table tournament-targets" id="assignment-table">
+            <div class="table-row table-head">
+                <div>Round</div>
+                <div>Lane</div>
+                <div>Target</div>
+                {% for stake in stakeKeys %}
+                    <div>{{ stake|capitalize }}</div>
+                {% endfor %}
+                <div></div>
+            </div>
+            {% for assignment in tournament.targets %}
+                {% set rowIndex = loop.index0 %}
+                <div class="table-row assignment-row">
+                    <input type="number" name="assignments[{{ rowIndex }}][round]" value="{{ assignment.round }}" min="1" required>
+                    <select name="assignments[{{ rowIndex }}][shooting_lane_id]" required>
+                        {% for lane in archeryGround.shootingLanes %}
+                            <option value="{{ lane.id }}" {% if lane.id == assignment.shootingLane.id %}selected{% endif %}>
+                                {{ lane.name }} (max {{ lane.maxDistance }}m)
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <select name="assignments[{{ rowIndex }}][target_id]" required>
+                        {% for target in archeryGround.targetStorage %}
+                            <option value="{{ target.id }}" {% if target.id == assignment.target.id %}selected{% endif %}>
+                                {{ target.name }} ({{ target.type.value }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% for stake in stakeKeys %}
+                        <input type="number" name="assignments[{{ rowIndex }}][stakes][{{ stake }}]" value="{{ assignment.stakes.get(stake) }}" min="0" step="1" required>
+                    {% endfor %}
+                    <button class="link js-remove-row" type="button">Remove</button>
+                </div>
+            {% else %}
+                <div class="table-row empty assignment-empty">
+                    <div>No assignments yet. Add rows below or regenerate.</div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="inline-actions">
+            <button class="button ghost" type="button" id="add-assignment">Add assignment</button>
+            <button class="button" type="submit">Save assignments</button>
+        </div>
+    </form>
+</section>
+
+<template id="assignment-template">
+    <div class="table-row assignment-row">
+        <input type="number" name="assignments[__INDEX__][round]" value="1" min="1" required>
+        <select name="assignments[__INDEX__][shooting_lane_id]" required>
+            {% for lane in archeryGround.shootingLanes %}
+                <option value="{{ lane.id }}">{{ lane.name }} (max {{ lane.maxDistance }}m)</option>
+            {% endfor %}
+        </select>
+        <select name="assignments[__INDEX__][target_id]" required>
+            {% for target in archeryGround.targetStorage %}
+                <option value="{{ target.id }}">{{ target.name }} ({{ target.type.value }})</option>
+            {% endfor %}
+        </select>
+        {% for stake in stakeKeys %}
+            <input type="number" name="assignments[__INDEX__][stakes][{{ stake }}]" value="0" min="0" step="1" required>
+        {% endfor %}
+        <button class="link js-remove-row" type="button">Remove</button>
+    </div>
+</template>
+
+<script>
+(() => {
+    const table = document.getElementById('assignment-table');
+    const addButton = document.getElementById('add-assignment');
+    const template = document.getElementById('assignment-template');
+
+    if (!table || !addButton || !template) {
+        return;
+    }
+
+    const removeRow = (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        if (!target.classList.contains('js-remove-row')) {
+            return;
+        }
+
+        const row = target.closest('.assignment-row');
+        if (row) {
+            row.remove();
+        }
+    };
+
+    table.addEventListener('click', removeRow);
+
+    addButton.addEventListener('click', () => {
+        const index = table.querySelectorAll('.assignment-row').length;
+        const html = template.innerHTML.replaceAll('__INDEX__', index.toString());
+        const container = document.createElement('div');
+        container.innerHTML = html.trim();
+        const row = container.firstElementChild;
+        const empty = table.querySelector('.assignment-empty');
+        if (empty) {
+            empty.remove();
+        }
+        if (row) {
+            table.appendChild(row);
+        }
+    });
+})();
+</script>
+{% endblock %}

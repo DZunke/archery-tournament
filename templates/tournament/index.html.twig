@@ -8,10 +8,43 @@
         <h1>Tournaments</h1>
         <p>Generate and manage tournaments from your configured archery grounds.</p>
     </div>
+    <div>
+        <a class="button" href="{{ path('tournament_new') }}">New Tournament</a>
+    </div>
 </section>
 
-<div class="empty-state">
-    <h2>Coming soon</h2>
-    <p>The tournament UI will be the next feature. For now, use the CLI generator.</p>
+<div class="grid">
+    {% for tournament in tournaments %}
+        <article class="card">
+            <div class="card-header">
+                <h2>{{ tournament.name }}</h2>
+                <span class="badge">{{ tournament.ruleset.value }}</span>
+            </div>
+            <div class="card-meta">
+                <div>
+                    <strong>{{ tournament.eventDate|date('Y-m-d') }}</strong>
+                    Date
+                </div>
+                <div>
+                    <strong>{{ tournament.numberOfTargets }}</strong>
+                    Targets
+                </div>
+                <div>
+                    <strong>{{ tournament.targets|length }}</strong>
+                    Assigned
+                </div>
+            </div>
+            <p class="muted">Ground: {{ tournament.archeryGround.name }}</p>
+            <div class="card-actions">
+                <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Manage</a>
+            </div>
+        </article>
+    {% else %}
+        <div class="empty-state">
+            <h2>No tournaments yet</h2>
+            <p>Create your first tournament using the generator or manual builder.</p>
+            <a class="button" href="{{ path('tournament_new') }}">Create tournament</a>
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

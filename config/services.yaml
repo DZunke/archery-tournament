@@ -18,6 +18,7 @@ services:
     public: true
 
   App\Domain\Repository\ArcheryGroundRepository: '@App\Infrastructure\Persistence\Dbal\DbalArcheryGroundRepository'
+  App\Domain\Repository\TournamentRepository: '@App\Infrastructure\Persistence\Dbal\DbalTournamentRepository'
   App\Application\Service\TargetImageStorage: '@App\Infrastructure\Storage\LocalTargetImageStorage'
   App\Application\Bus\CommandBus: '@App\Infrastructure\Bus\SimpleMessageBus'
   App\Application\Bus\QueryBus: '@App\Infrastructure\Bus\SimpleMessageBus'

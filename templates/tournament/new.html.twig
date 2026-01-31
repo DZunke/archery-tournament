@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Tournament · Archery Tournament{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>Create Tournament</h1>
+        <p>Start with an automatic generation or build a tournament manually.</p>
+    </div>
+    <div>
+        <a class="button ghost" href="{{ path('tournament_index') }}">Back</a>
+    </div>
+</section>
+
+<div class="card">
+    <form method="post" action="{{ path('tournament_create') }}" class="form">
+        <div class="form-row">
+            <label class="field">
+                <span>Tournament name</span>
+                <input type="text" name="name" placeholder="Spring 3D Cup" required>
+            </label>
+            <label class="field">
+                <span>Event date</span>
+                <input type="date" name="event_date">
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label class="field">
+                <span>Archery ground</span>
+                <select name="archery_ground_id" required>
+                    <option value="">Select a ground</option>
+                    {% for ground in grounds %}
+                        <option value="{{ ground.id }}">{{ ground.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span>Ruleset</span>
+                <select name="ruleset" required>
+                    {% for ruleset in rulesets %}
+                        <option value="{{ ruleset.value }}">{{ ruleset.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span>Number of targets</span>
+                <input type="number" name="number_of_targets" min="1" step="1" placeholder="24" required>
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label class="field">
+                <span>Mode</span>
+                <div class="choice-group">
+                    <label class="choice">
+                        <input type="radio" name="mode" value="auto" checked>
+                        Auto-generate (editable)
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="mode" value="manual">
+                        Manual (start empty)
+                    </label>
+                </div>
+            </label>
+            <label class="field">
+                <span>Randomize stakes between rounds</span>
+                <label class="choice">
+                    <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
+                    Enable random stake distances for each round
+                </label>
+            </label>
+        </div>
+
+        <button class="button" type="submit">Create tournament</button>
+    </form>
+</div>
+{% endblock %}
