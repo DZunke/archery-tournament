@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\ArcheryGround;
 
+use App\Application\Bus\CommandBus;
 use App\Application\Command\ArcheryGround\DeleteArcheryGround;
-use App\Application\Command\ArcheryGround\DeleteArcheryGroundHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class DeleteController extends AbstractController
 {
-    public function __construct(private readonly DeleteArcheryGroundHandler $deleteArcheryGroundHandler)
+    public function __construct(private readonly CommandBus $commandBus)
     {
     }
 
     #[Route('/archery-grounds/{id}/delete', name: 'archery_ground_delete', methods: ['POST'])]
     public function __invoke(string $id): Response
     {
-        $result = ($this->deleteArcheryGroundHandler)(new DeleteArcheryGround($id));
+        $result = $this->commandBus->dispatch(new DeleteArcheryGround($id));
 
         if ($result->success) {
             $this->addFlash('success', (string) $result->message);

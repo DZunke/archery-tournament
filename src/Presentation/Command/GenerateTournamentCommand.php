@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Presentation\Command;
 
+use App\Application\Bus\QueryBus;
 use App\Application\Query\ArcheryGround\GetArcheryGround;
-use App\Application\Query\ArcheryGround\GetArcheryGroundHandler;
 use App\Application\Service\TournamentGenerator\DTO\TournamentGenerationRequest;
 use App\Application\Service\TournamentGenerator\TournamentGenerationPipeline;
 use App\Domain\Entity\ArcheryGround;
@@ -27,7 +27,7 @@ use function array_merge;
 final class GenerateTournamentCommand
 {
     public function __construct(
-        private readonly GetArcheryGroundHandler $getArcheryGroundHandler,
+        private readonly QueryBus $queryBus,
         private readonly TournamentGenerationPipeline $tournamentGenerationPipeline,
     ) {
     }
@@ -49,7 +49,7 @@ final class GenerateTournamentCommand
         $io->title('Generate Tournament Command');
 
         // todo: ask and fetch the correct archery ground to use
-        $archeryGround = ($this->getArcheryGroundHandler)(new GetArcheryGround($archeryGroundId));
+        $archeryGround = $this->queryBus->ask(new GetArcheryGround($archeryGroundId));
         if (! $archeryGround instanceof ArcheryGround) {
             $io->error('Archery ground not found. Create one in the UI first.');
 

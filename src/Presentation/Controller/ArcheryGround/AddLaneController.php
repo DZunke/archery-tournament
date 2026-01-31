@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\ArcheryGround;
 
-use App\Application\Command\ArcheryGround\AddShootingLane;
-use App\Application\Command\ArcheryGround\AddShootingLaneHandler;
+use App\Application\Bus\CommandBus;
+use App\Presentation\Input\ArcheryGround\AddShootingLaneInput;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,18 +13,24 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class AddLaneController extends AbstractController
 {
-    public function __construct(private readonly AddShootingLaneHandler $addShootingLaneHandler)
+    public function __construct(private readonly CommandBus $commandBus)
     {
     }
 
     #[Route('/archery-grounds/{id}/lanes', name: 'archery_ground_add_lane', methods: ['POST'])]
     public function __invoke(Request $request, string $id): Response
     {
-        $result = ($this->addShootingLaneHandler)(new AddShootingLane(
-            archeryGroundId: $id,
-            name: (string) $request->request->get('name', ''),
-            maxDistance: (string) $request->request->get('max_distance', ''),
-        ));
+        $input  = AddShootingLaneInput::fromRequest($request);
+        $errors = $input->errors();
+        if ($errors !== []) {
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error);
+            }
+
+            return $this->redirectToRoute('archery_ground_show', ['id' => $id]);
+        }
+
+        $result = $this->commandBus->dispatch($input->toCommand($id));
 
         if ($result->success) {
             $this->addFlash('success', (string) $result->message);

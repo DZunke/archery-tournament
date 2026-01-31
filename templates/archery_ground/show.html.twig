@@ -84,7 +84,20 @@
                 </label>
                 <label class="field">
                     <span>Target image</span>
-                    <input type="file" name="image" accept="image/*" required>
+                    <div class="dropzone" data-dropzone>
+                        <input type="file" name="image" accept="image/*" required>
+                        <div class="dropzone-content">
+                            <strong>Drag & drop</strong> or click to upload
+                            <span class="dropzone-hint">PNG, JPG, WEBP, or GIF</span>
+                        </div>
+                        <div class="dropzone-preview" hidden>
+                            <img src="" alt="Selected target preview">
+                            <div>
+                                <div class="dropzone-filename"></div>
+                                <div class="dropzone-hint">Drop a new image to replace</div>
+                            </div>
+                        </div>
+                    </div>
                 </label>
             </div>
             <button class="button" type="submit">Add target</button>
@@ -211,6 +224,81 @@
     });
 
     update();
+
+    const dropzone = document.querySelector('[data-dropzone]');
+    if (dropzone instanceof HTMLElement) {
+        const fileInput = dropzone.querySelector('input[type="file"]');
+        const preview = dropzone.querySelector('.dropzone-preview');
+        const previewImage = dropzone.querySelector('.dropzone-preview img');
+        const previewName = dropzone.querySelector('.dropzone-filename');
+        const content = dropzone.querySelector('.dropzone-content');
+
+        const updatePreview = (file) => {
+            if (!preview || !previewImage || !previewName || !content) {
+                return;
+            }
+
+            previewImage.src = URL.createObjectURL(file);
+            previewImage.onload = () => URL.revokeObjectURL(previewImage.src);
+            previewName.textContent = file.name;
+            preview.hidden = false;
+            content.hidden = true;
+        };
+
+        const resetPreview = () => {
+            if (!preview || !previewImage || !previewName || !content) {
+                return;
+            }
+
+            preview.hidden = true;
+            content.hidden = false;
+            previewImage.src = '';
+            previewName.textContent = '';
+        };
+
+        dropzone.addEventListener('dragenter', (event) => {
+            event.preventDefault();
+            dropzone.classList.add('is-dragging');
+        });
+
+        dropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropzone.classList.add('is-dragging');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('is-dragging');
+        });
+
+        dropzone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropzone.classList.remove('is-dragging');
+            if (!fileInput) {
+                return;
+            }
+
+            const [file] = event.dataTransfer.files;
+            if (!file) {
+                resetPreview();
+                return;
+            }
+
+            fileInput.files = event.dataTransfer.files;
+            updatePreview(file);
+        });
+
+        if (fileInput) {
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files && fileInput.files[0];
+                if (!file) {
+                    resetPreview();
+                    return;
+                }
+
+                updatePreview(file);
+            });
+        }
+    }
 })();
 </script>
 {% endblock %}

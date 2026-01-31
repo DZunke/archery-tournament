@@ -8,8 +8,6 @@ use App\Application\Command\CommandResult;
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Repository\ArcheryGroundRepository;
 
-use function trim;
-
 final readonly class CreateArcheryGroundHandler
 {
     public function __construct(private ArcheryGroundRepository $archeryGroundRepository)
@@ -18,14 +16,9 @@ final readonly class CreateArcheryGroundHandler
 
     public function __invoke(CreateArcheryGround $command): CommandResult
     {
-        $name = trim($command->name);
-        if ($name === '') {
-            return CommandResult::failure('Please provide a name for the archery ground.');
-        }
-
         $archeryGround = new ArcheryGround(
             id: $this->archeryGroundRepository->nextIdentity(),
-            name: $name,
+            name: $command->name,
         );
 
         $this->archeryGroundRepository->save($archeryGround);

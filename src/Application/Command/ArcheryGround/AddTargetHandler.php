@@ -8,12 +8,7 @@ use App\Application\Command\CommandResult;
 use App\Application\Service\TargetImageStorage;
 use App\Domain\Entity\ArcheryGround\Target;
 use App\Domain\Repository\ArcheryGroundRepository;
-use App\Domain\ValueObject\TargetType;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use ValueError;
-
-use function trim;
 
 final readonly class AddTargetHandler
 {
@@ -25,21 +20,6 @@ final readonly class AddTargetHandler
 
     public function __invoke(AddTarget $command): CommandResult
     {
-        $name = trim($command->name);
-        if ($name === '') {
-            return CommandResult::failure('Target name is required.');
-        }
-
-        try {
-            $type = TargetType::from($command->type);
-        } catch (ValueError) {
-            return CommandResult::failure('Target type is invalid.');
-        }
-
-        if (! $command->image instanceof UploadedFile) {
-            return CommandResult::failure('Please upload an image for the target.');
-        }
-
         $targetId = $this->archeryGroundRepository->nextIdentity();
 
         try {
@@ -50,8 +30,8 @@ final readonly class AddTargetHandler
 
         $target = new Target(
             id: $targetId,
-            type: $type,
-            name: $name,
+            type: $command->type,
+            name: $command->name,
             image: $imagePath,
         );
 

@@ -8,9 +8,6 @@ use App\Application\Command\CommandResult;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Repository\ArcheryGroundRepository;
 
-use function is_numeric;
-use function trim;
-
 final readonly class AddShootingLaneHandler
 {
     public function __construct(private ArcheryGroundRepository $archeryGroundRepository)
@@ -19,24 +16,10 @@ final readonly class AddShootingLaneHandler
 
     public function __invoke(AddShootingLane $command): CommandResult
     {
-        $name = trim($command->name);
-        if ($name === '') {
-            return CommandResult::failure('Lane name is required.');
-        }
-
-        if ($command->maxDistance === '' || ! is_numeric($command->maxDistance)) {
-            return CommandResult::failure('Max distance must be a number.');
-        }
-
-        $maxDistance = (float) $command->maxDistance;
-        if ($maxDistance <= 0) {
-            return CommandResult::failure('Max distance must be greater than zero.');
-        }
-
         $lane = new ShootingLane(
             id: $this->archeryGroundRepository->nextIdentity(),
-            name: $name,
-            maxDistance: $maxDistance,
+            name: $command->name,
+            maxDistance: $command->maxDistance,
         );
 
         $this->archeryGroundRepository->addShootingLane($command->archeryGroundId, $lane);

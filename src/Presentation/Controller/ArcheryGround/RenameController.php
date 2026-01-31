@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\ArcheryGround;
 
-use App\Application\Command\ArcheryGround\RenameArcheryGround;
-use App\Application\Command\ArcheryGround\RenameArcheryGroundHandler;
+use App\Application\Bus\CommandBus;
+use App\Presentation\Input\ArcheryGround\RenameArcheryGroundInput;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,17 +13,24 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class RenameController extends AbstractController
 {
-    public function __construct(private readonly RenameArcheryGroundHandler $renameArcheryGroundHandler)
+    public function __construct(private readonly CommandBus $commandBus)
     {
     }
 
     #[Route('/archery-grounds/{id}/rename', name: 'archery_ground_rename', methods: ['POST'])]
     public function __invoke(Request $request, string $id): Response
     {
-        $result = ($this->renameArcheryGroundHandler)(new RenameArcheryGround(
-            id: $id,
-            name: (string) $request->request->get('name', ''),
-        ));
+        $input  = RenameArcheryGroundInput::fromRequest($request);
+        $errors = $input->errors();
+        if ($errors !== []) {
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error);
+            }
+
+            return $this->redirectToRoute('archery_ground_show', ['id' => $id]);
+        }
+
+        $result = $this->commandBus->dispatch($input->toCommand($id));
 
         if ($result->success) {
             $this->addFlash('success', (string) $result->message);

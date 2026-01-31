@@ -9,7 +9,7 @@ final readonly class AddShootingLane
     public function __construct(
         public string $archeryGroundId,
         public string $name,
-        public string $maxDistance,
+        public float $maxDistance,
     ) {
     }
 }

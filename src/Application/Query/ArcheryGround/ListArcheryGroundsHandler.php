@@ -14,8 +14,10 @@ final readonly class ListArcheryGroundsHandler
     }
 
     /** @return list<ArcheryGround> */
-    public function __invoke(): array
+    public function __invoke(ListArcheryGrounds $query): array
     {
+        unset($query);
+
         return $this->archeryGroundRepository->findAll();
     }
 }

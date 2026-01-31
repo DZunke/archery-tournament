@@ -23,6 +23,18 @@ The project uses Doctrine DBAL with a simple SQLite database.
 php bin/console app:db:init
 ```
 
+To reset the database back to an empty state:
+
+```bash
+php bin/console app:db:reset --force
+```
+
+To seed sample data (uses test fixtures, requires dev dependencies):
+
+```bash
+php bin/console app:db:seed --reset
+```
+
 ## Docker (FrankenPHP)
 
 For a consistent HTTP environment, use the provided Docker Compose setup:
@@ -48,6 +60,8 @@ php vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=-1
 - Run generator: `php bin/console app:generate-tournament <archery-ground-id>`
 - Toggle stake randomization: `-r` or `--randomize-stakes-between-rounds`
 - Run UI server: `php -S 127.0.0.1:8000 -t public`
+- Reset database: `php bin/console app:db:reset --force`
+- Seed sample data: `php bin/console app:db:seed --reset`
 
 ## Fixtures
 

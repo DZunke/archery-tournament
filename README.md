@@ -1,10 +1,10 @@
 # Archery Tournament Generator
 
-Generate archery tournaments from a ruleset, available lanes, and target inventory. The generator assigns targets to lanes and produces stake distances within the ruleset ranges. Output is currently provided via a Symfony Console command.
+Generate archery tournaments from a ruleset, available lanes, and target inventory. The generator assigns targets to lanes and produces stake distances within the ruleset ranges. Archery grounds and targets can now be managed in the UI, while tournament generation is still provided via the Symfony Console command.
 
 ## Status
 
-This project is early-stage. The tournament generation pipeline is the primary working component. Database persistence and a user interface are planned.
+This project is early-stage. The tournament generation pipeline is stable, and a lightweight UI for archery ground management is in place. Tournament generation in the UI is planned next.
 
 ## Quick Start
 
@@ -14,17 +14,28 @@ Requirements:
 - SQLite PDO extension (`pdo_sqlite`)
 - File uploads write to `public/uploads/targets`
 
-Run the generator (requires an archery ground ID from the UI):
+Initialize the database:
 
 ```bash
 php bin/console app:db:init
-php bin/console app:generate-tournament <archery-ground-id>
 ```
 
-Run the UI:
+Optional: seed sample data:
+
+```bash
+php bin/console app:db:seed --reset
+```
+
+Run the UI (create an archery ground if you did not seed):
 
 ```bash
 php -S 127.0.0.1:8000 -t public
+```
+
+Generate a tournament (requires an archery ground ID):
+
+```bash
+php bin/console app:generate-tournament <archery-ground-id>
 ```
 
 Run via Docker (FrankenPHP):
