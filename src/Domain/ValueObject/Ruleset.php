@@ -16,7 +16,8 @@ use function usort;
 
 enum Ruleset: string
 {
-    case DSB_3D = 'DSB_3D';
+    case DSB_3D   = 'DSB_3D';
+    case FREEHAND = 'FREEHAND';
 
     /** @return list<TargetType> */
     public function allowedTargetTypes(): array
@@ -28,6 +29,7 @@ enum Ruleset: string
                 TargetType::ANIMAL_GROUP_3,
                 TargetType::ANIMAL_GROUP_4,
             ],
+            self::FREEHAND => TargetType::cases(),
         };
     }
 
@@ -35,6 +37,7 @@ enum Ruleset: string
     {
         return match ($this) {
             self::DSB_3D => 'DSB 3D',
+            self::FREEHAND => 'Freehand',
         };
     }
 
@@ -42,6 +45,11 @@ enum Ruleset: string
     public function requiredTargetTypes(): array
     {
         return $this->allowedTargetTypes();
+    }
+
+    public function supportsTargetGroupBalancing(): bool
+    {
+        return $this !== self::FREEHAND;
     }
 
     public function getMaxStakeDistance(TargetType $targetType): float
@@ -130,6 +138,16 @@ enum Ruleset: string
                     'red' => ['min' => 5.0, 'max' => 15.0],
                     'blue' => ['min' => 5.0, 'max' => 15.0],
                     'yellow' => ['min' => 5.0, 'max' => 5.0],
+                ],
+            },
+            self::FREEHAND => match ($targetType) {
+                TargetType::ANIMAL_GROUP_1,
+                TargetType::ANIMAL_GROUP_2,
+                TargetType::ANIMAL_GROUP_3,
+                TargetType::ANIMAL_GROUP_4 => [
+                    'red' => ['min' => 0.0, 'max' => 999.0],
+                    'blue' => ['min' => 0.0, 'max' => 999.0],
+                    'yellow' => ['min' => 0.0, 'max' => 999.0],
                 ],
             },
         };

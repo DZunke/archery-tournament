@@ -20,8 +20,13 @@ final class TargetGroupBalanceRule implements TournamentValidationRule
     /** @return list<TournamentValidationIssue> */
     public function validate(Tournament $tournament): array
     {
-        $issues        = [];
-        $ruleset       = $tournament->ruleset();
+        $issues  = [];
+        $ruleset = $tournament->ruleset();
+
+        if (! $ruleset->supportsTargetGroupBalancing()) {
+            return [];
+        }
+
         $requiredTypes = $ruleset->requiredTargetTypes();
         $groupCount    = count($requiredTypes);
 

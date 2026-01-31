@@ -8,12 +8,18 @@ use App\Application\Service\TournamentGenerator\DTO\TournamentResult;
 use App\Application\Service\TournamentGenerator\Exception\TournamentGenerationFailed;
 use App\Application\Service\TournamentGenerator\Step\TournamentGenerationStep;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
+use App\Domain\Entity\ArcheryGround\Target;
+use App\Domain\ValueObject\TargetType;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
+use function array_fill_keys;
 use function array_map;
+use function array_slice;
+use function array_splice;
 use function ceil;
 use function count;
+use function min;
 use function shuffle;
 
 #[AsTaggedItem(priority: 480)]
@@ -35,6 +41,12 @@ final readonly class PlaceTargetTypes implements TournamentGenerationStep
 
     public function process(TournamentResult $tournamentResult): void
     {
+        if (! $tournamentResult->ruleset->supportsTargetGroupBalancing()) {
+            $this->placeFreehandTargets($tournamentResult);
+
+            return;
+        }
+
         $roundsThatWillBeDone = $tournamentResult->requiredRounds;
         $numberOfTargets      = $tournamentResult->numberOfTargets;
         $amountOfTargetTypes  = count($tournamentResult->ruleset->requiredTargetTypes());
@@ -83,6 +95,66 @@ final readonly class PlaceTargetTypes implements TournamentGenerationStep
                     $qualifiedLanesForTargetType,
                 ),
             ];
+        }
+    }
+
+    private function placeFreehandTargets(TournamentResult $tournamentResult): void
+    {
+        $availableLanes   = $tournamentResult->availableLanes;
+        $availableTargets = $tournamentResult->archeryGround->targetStorage();
+
+        if (count($availableTargets) === 0) {
+            throw new TournamentGenerationFailed('No targets are available for freehand tournament generation.');
+        }
+
+        if (count($availableLanes) === 0) {
+            throw new TournamentGenerationFailed('No lanes are available for freehand tournament generation.');
+        }
+
+        $lanesToUse = min(
+            $tournamentResult->numberOfTargets,
+            count($availableLanes),
+            count($availableTargets),
+        );
+
+        if ($lanesToUse <= 0) {
+            throw new TournamentGenerationFailed('Not enough lanes or targets to generate a freehand tournament.');
+        }
+
+        $typePool = array_map(
+            static fn (Target $target): TargetType => $target->type(),
+            $availableTargets,
+        );
+
+        shuffle($typePool);
+        $typePool = array_slice($typePool, 0, $lanesToUse);
+        $counts   = array_fill_keys(array_map(static fn (TargetType $type): string => $type->value, $typePool), 0);
+
+        foreach ($typePool as $type) {
+            $counts[$type->value]++;
+        }
+
+        shuffle($availableLanes);
+
+        foreach ($counts as $typeValue => $count) {
+            if ($count <= 0) {
+                continue;
+            }
+
+            $lanes = array_splice($availableLanes, 0, $count);
+            $type  = TargetType::from($typeValue);
+
+            $tournamentResult->selectedLanesPerTargetGroup[$typeValue] = [
+                'type' => $type,
+                'lanes' => array_map(
+                    static fn (ShootingLane $lane): array => ['lane' => $lane, 'target' => null],
+                    $lanes,
+                ),
+            ];
+        }
+
+        if ($tournamentResult->selectedLanesPerTargetGroup === []) {
+            throw new TournamentGenerationFailed('Unable to assign lanes for freehand target placement.');
         }
     }
 }

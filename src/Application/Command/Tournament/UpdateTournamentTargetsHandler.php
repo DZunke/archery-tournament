@@ -39,12 +39,14 @@ final readonly class UpdateTournamentTargetsHandler
         $targetMap     = $this->buildTargetMap($archeryGround->targetStorage());
         $ruleset       = $tournament->ruleset();
 
-        $collection            = new TournamentTargetCollection();
-        $issues                = [];
-        $targetLaneAssignments = [];
-        $duplicateRows         = [];
-        $laneRoundAssignments  = [];
-        $duplicateLaneRows     = [];
+        $collection              = new TournamentTargetCollection();
+        $issues                  = [];
+        $targetLaneAssignments   = [];
+        $duplicateRows           = [];
+        $laneRoundAssignments    = [];
+        $duplicateLaneRows       = [];
+        $laneTargetAssignments   = [];
+        $duplicateLaneTargetRows = [];
 
         foreach ($command->assignments as $assignment) {
             $rowNumber   = $assignment->rowIndex + 1;
@@ -102,6 +104,34 @@ final readonly class UpdateTournamentTargetsHandler
                 } else {
                     $targetLaneAssignments[$target->id()] = [
                         'laneId' => $lane->id(),
+                        'row' => $rowNumber,
+                    ];
+                }
+            }
+
+            if ($lane instanceof ShootingLane && $target instanceof Target) {
+                $existingTarget = $laneTargetAssignments[$lane->id()] ?? null;
+                if ($existingTarget !== null && $existingTarget['targetId'] !== $target->id()) {
+                    $duplicateKey = $lane->id() . ':' . $existingTarget['row'];
+                    if (! isset($duplicateLaneTargetRows[$duplicateKey])) {
+                        $issues[]                               = new TournamentValidationIssue(
+                            rule: 'Lane Target Consistency',
+                            message: 'Lane "' . $lane->name() . '" must keep the same target across rounds (row ' . $existingTarget['row'] . ' uses "' . $existingTarget['targetName'] . '").',
+                            context: ['row' => $existingTarget['row']],
+                        );
+                        $duplicateLaneTargetRows[$duplicateKey] = true;
+                    }
+
+                    $issues[]    = new TournamentValidationIssue(
+                        rule: 'Lane Target Consistency',
+                        message: 'Lane "' . $lane->name() . '" must keep the same target across rounds (row ' . $existingTarget['row'] . ' uses "' . $existingTarget['targetName'] . '").',
+                        context: ['row' => $rowNumber],
+                    );
+                    $rowHasIssue = true;
+                } else {
+                    $laneTargetAssignments[$lane->id()] = [
+                        'targetId' => $target->id(),
+                        'targetName' => $target->name(),
                         'row' => $rowNumber,
                     ];
                 }
@@ -195,48 +225,50 @@ final readonly class UpdateTournamentTargetsHandler
             ));
         }
 
-        $requiredTypes = $ruleset->requiredTargetTypes();
-        $groupCount    = count($requiredTypes);
-        if ($groupCount === 0) {
-            $issues[] = new TournamentValidationIssue(
-                rule: 'Target Group Balance',
-                message: 'No target groups are configured for this ruleset.',
-            );
-        } else {
-            $expectedTotal = $tournament->numberOfTargets();
-            if ($expectedTotal % $groupCount !== 0) {
+        if ($ruleset->supportsTargetGroupBalancing()) {
+            $requiredTypes = $ruleset->requiredTargetTypes();
+            $groupCount    = count($requiredTypes);
+            if ($groupCount === 0) {
                 $issues[] = new TournamentValidationIssue(
                     rule: 'Target Group Balance',
-                    message: 'Number of targets (' . $expectedTotal . ') must be divisible by the number of target groups (' . $groupCount . ').',
-                    context: ['expected' => $expectedTotal, 'groups' => $groupCount],
+                    message: 'No target groups are configured for this ruleset.',
                 );
-            } elseif ($collection->count() === $expectedTotal) {
-                $expectedPerGroup = intdiv($expectedTotal, $groupCount);
-                $counts           = array_fill_keys(
-                    array_map(static fn (TargetType $type): string => $type->value, $requiredTypes),
-                    0,
-                );
-
-                foreach ($collection as $assignment) {
-                    $type = $assignment->target()->type();
-                    if (! isset($counts[$type->value])) {
-                        continue;
-                    }
-
-                    $counts[$type->value]++;
-                }
-
-                foreach ($requiredTypes as $type) {
-                    $actual = $counts[$type->value] ?? 0;
-                    if ($actual === $expectedPerGroup) {
-                        continue;
-                    }
-
+            } else {
+                $expectedTotal = $tournament->numberOfTargets();
+                if ($expectedTotal % $groupCount !== 0) {
                     $issues[] = new TournamentValidationIssue(
                         rule: 'Target Group Balance',
-                        message: 'Target group "' . $type->name . '" must be assigned ' . $expectedPerGroup . ' times but is assigned ' . $actual . '.',
-                        context: ['group' => $type->value, 'expected' => $expectedPerGroup, 'actual' => $actual],
+                        message: 'Number of targets (' . $expectedTotal . ') must be divisible by the number of target groups (' . $groupCount . ').',
+                        context: ['expected' => $expectedTotal, 'groups' => $groupCount],
                     );
+                } elseif ($collection->count() === $expectedTotal) {
+                    $expectedPerGroup = intdiv($expectedTotal, $groupCount);
+                    $counts           = array_fill_keys(
+                        array_map(static fn (TargetType $type): string => $type->value, $requiredTypes),
+                        0,
+                    );
+
+                    foreach ($collection as $assignment) {
+                        $type = $assignment->target()->type();
+                        if (! isset($counts[$type->value])) {
+                            continue;
+                        }
+
+                        $counts[$type->value]++;
+                    }
+
+                    foreach ($requiredTypes as $type) {
+                        $actual = $counts[$type->value] ?? 0;
+                        if ($actual === $expectedPerGroup) {
+                            continue;
+                        }
+
+                        $issues[] = new TournamentValidationIssue(
+                            rule: 'Target Group Balance',
+                            message: 'Target group "' . $type->name . '" must be assigned ' . $expectedPerGroup . ' times but is assigned ' . $actual . '.',
+                            context: ['group' => $type->value, 'expected' => $expectedPerGroup, 'actual' => $actual],
+                        );
+                    }
                 }
             }
         }

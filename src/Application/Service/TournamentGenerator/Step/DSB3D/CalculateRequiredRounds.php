@@ -13,6 +13,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
 use function ceil;
 use function count;
+use function min;
 
 #[AsTaggedItem(priority: 490)]
 final readonly class CalculateRequiredRounds implements TournamentGenerationStep
@@ -45,7 +46,15 @@ final readonly class CalculateRequiredRounds implements TournamentGenerationStep
             throw new TournamentGenerationFailed('No target types defined in the ruleset for the tournament.');
         }
 
-        $roundsNeeded                     = (int) ceil($numberOfTargets / $qualifiedLanesCount);
+        $effectiveLanes = $qualifiedLanesCount;
+        if (! $tournamentResult->ruleset->supportsTargetGroupBalancing()) {
+            $availableTargets = count($tournamentResult->archeryGround->targetStorage());
+            if ($availableTargets > 0) {
+                $effectiveLanes = min($qualifiedLanesCount, $availableTargets);
+            }
+        }
+
+        $roundsNeeded                     = (int) ceil($numberOfTargets / $effectiveLanes);
         $tournamentResult->requiredRounds = $roundsNeeded;
 
         $this->logger->debug(
