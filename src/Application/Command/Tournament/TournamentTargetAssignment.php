@@ -8,6 +8,7 @@ final readonly class TournamentTargetAssignment
 {
     /** @param array<string,int> $stakes */
     public function __construct(
+        public int $rowIndex,
         public int $round,
         public string $shootingLaneId,
         public string $targetId,

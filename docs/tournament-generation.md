@@ -153,3 +153,44 @@ Example (already implemented):
 - Use `-r` to verify stake randomization between rounds.
 
 As persistence is added, ensure new data sources feed `TournamentGenerationRequest` rather than bypassing the pipeline.
+
+## Tournament Validation
+
+Manual edits can be validated against the ruleset from the tournament detail view.
+Validation rules are implemented as independent rule classes and composed by the
+`TournamentValidator` service.
+
+### Current Validation Rules
+
+- **Target Count**: ensures assigned targets match the configured target count.
+- **Stake Distances**: checks each stake distance fits the ruleset ranges and lane maximums.
+
+### Adding a New Validation Rule
+
+1) Implement `TournamentValidationRule`:
+
+```php
+#[AsTaggedItem(priority: 300)]
+final class RoundNumberRule implements TournamentValidationRule
+{
+    public function validate(Tournament $tournament): array
+    {
+        $issues = [];
+
+        foreach ($tournament->targets() as $assignment) {
+            if ($assignment->round() <= 0) {
+                $issues[] = new TournamentValidationIssue(
+                    rule: 'Round Number',
+                    message: 'Round must be greater than zero.',
+                );
+            }
+        }
+
+        return $issues;
+    }
+}
+```
+
+2) The rule is auto-tagged and picked up by `TournamentValidator` via `AutowireIterator`.
+
+Keep rules small and focused so they can be composed and tested independently.

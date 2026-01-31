@@ -20,8 +20,9 @@ final readonly class CommandResult
         return new self(true, $message, $data);
     }
 
-    public static function failure(string $message): self
+    /** @param array<string, mixed> $data */
+    public static function failure(string $message, array $data = []): self
     {
-        return new self(false, $message);
+        return new self(false, $message, $data);
     }
 }

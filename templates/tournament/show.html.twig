@@ -22,13 +22,33 @@
         <span class="badge">{{ tournament.ruleset.value }}</span>
     </div>
     <p class="muted">Auto-generated tournaments can be edited below. You can also regenerate the assignments.</p>
-    <form method="post" action="{{ path('tournament_regenerate', {id: tournament.id}) }}" class="form form-inline">
-        <label class="choice">
-            <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
-            Randomize stakes between rounds
-        </label>
-        <button class="button ghost" type="submit">Regenerate assignments</button>
-    </form>
+    <div class="inline-actions">
+        <form method="post" action="{{ path('tournament_regenerate', {id: tournament.id}) }}" class="form form-inline">
+            <label class="choice">
+                <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
+                Randomize stakes between rounds
+            </label>
+            <button class="button ghost" type="submit">Regenerate assignments</button>
+        </form>
+        <form method="post" action="{{ path('tournament_validate', {id: tournament.id}) }}">
+            <button class="button" type="submit" id="validate-tournament">Validate against ruleset</button>
+            <p class="muted validation-hint" id="validate-hint" hidden>Save changes before validating.</p>
+        </form>
+    </div>
+    {% if validationResult is defined %}
+        <div class="validation-results">
+            {% if validationResult.isValid %}
+                <div class="flash flash-success">No validation issues found.</div>
+            {% else %}
+                <div class="flash flash-error">Validation found {{ validationResult.issues|length }} issue(s).</div>
+                <ul class="validation-list">
+                    {% for issue in validationResult.issues %}
+                        <li><strong>{{ issue.rule }}:</strong> {{ issue.message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endif %}
 </section>
 
 <section class="panel panel-spaced">
@@ -36,6 +56,16 @@
         <h2>Assignments</h2>
         <span class="badge">{{ tournament.targets|length }} / {{ tournament.numberOfTargets }}</span>
     </div>
+    {% if saveIssues is defined and saveIssues %}
+        <div class="flash flash-error">
+            <strong>Save failed:</strong>
+            <ul class="validation-list">
+                {% for issue in saveIssues %}
+                    <li>{{ issue }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
     <form method="post" action="{{ path('tournament_update_targets', {id: tournament.id}) }}" class="form">
         <div class="table tournament-targets" id="assignment-table">
             <div class="table-row table-head">
@@ -47,34 +77,73 @@
                 {% endfor %}
                 <div></div>
             </div>
-            {% for assignment in tournament.targets %}
-                {% set rowIndex = loop.index0 %}
-                <div class="table-row assignment-row">
-                    <input type="number" name="assignments[{{ rowIndex }}][round]" value="{{ assignment.round }}" min="1" required>
-                    <select name="assignments[{{ rowIndex }}][shooting_lane_id]" required>
-                        {% for lane in archeryGround.shootingLanes %}
-                            <option value="{{ lane.id }}" {% if lane.id == assignment.shootingLane.id %}selected{% endif %}>
-                                {{ lane.name }} (max {{ lane.maxDistance }}m)
-                            </option>
+            {% if draftAssignments is defined %}
+                {% for assignment in draftAssignments %}
+                    {% set rowIndex = assignment.rowIndex %}
+                    {% set rowErrors = saveIssuesByRow is defined ? saveIssuesByRow[rowIndex + 1]|default([]) : [] %}
+                    <div class="table-row assignment-row{% if rowErrors %} has-errors{% endif %}">
+                        <input type="number" name="assignments[{{ rowIndex }}][round]" value="{{ assignment.round }}" min="1" required>
+                        <select name="assignments[{{ rowIndex }}][shooting_lane_id]" required>
+                            {% for lane in archeryGround.shootingLanes %}
+                                <option value="{{ lane.id }}" {% if lane.id == assignment.shootingLaneId %}selected{% endif %}>
+                                    {{ lane.name }} (max {{ lane.maxDistance }}m)
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <select name="assignments[{{ rowIndex }}][target_id]" required>
+                            {% for target in archeryGround.targetStorage %}
+                                <option value="{{ target.id }}" {% if target.id == assignment.targetId %}selected{% endif %}>
+                                    {{ target.name }} ({{ target.type.value }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% for stake in stakeKeys %}
+                            <input type="number" name="assignments[{{ rowIndex }}][stakes][{{ stake }}]" value="{{ assignment.stakes[stake]|default('') }}" min="0" step="1" required>
                         {% endfor %}
-                    </select>
-                    <select name="assignments[{{ rowIndex }}][target_id]" required>
-                        {% for target in archeryGround.targetStorage %}
-                            <option value="{{ target.id }}" {% if target.id == assignment.target.id %}selected{% endif %}>
-                                {{ target.name }} ({{ target.type.value }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                    {% for stake in stakeKeys %}
-                        <input type="number" name="assignments[{{ rowIndex }}][stakes][{{ stake }}]" value="{{ assignment.stakes.get(stake) }}" min="0" step="1" required>
-                    {% endfor %}
-                    <button class="link js-remove-row" type="button">Remove</button>
-                </div>
+                        <button class="link js-remove-row" type="button">Remove</button>
+                        {% if rowErrors %}
+                            <div class="assignment-error-inline">
+                                {% for issue in rowErrors %}
+                                    <div>Row {{ rowIndex + 1 }}: {{ issue }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="table-row empty assignment-empty">
+                        <div>No assignments yet. Add rows below or regenerate.</div>
+                    </div>
+                {% endfor %}
             {% else %}
-                <div class="table-row empty assignment-empty">
-                    <div>No assignments yet. Add rows below or regenerate.</div>
-                </div>
-            {% endfor %}
+                {% for assignment in tournament.targets %}
+                    {% set rowIndex = loop.index0 %}
+                    <div class="table-row assignment-row">
+                        <input type="number" name="assignments[{{ rowIndex }}][round]" value="{{ assignment.round }}" min="1" required>
+                        <select name="assignments[{{ rowIndex }}][shooting_lane_id]" required>
+                            {% for lane in archeryGround.shootingLanes %}
+                                <option value="{{ lane.id }}" {% if lane.id == assignment.shootingLane.id %}selected{% endif %}>
+                                    {{ lane.name }} (max {{ lane.maxDistance }}m)
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <select name="assignments[{{ rowIndex }}][target_id]" required>
+                            {% for target in archeryGround.targetStorage %}
+                                <option value="{{ target.id }}" {% if target.id == assignment.target.id %}selected{% endif %}>
+                                    {{ target.name }} ({{ target.type.value }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% for stake in stakeKeys %}
+                            <input type="number" name="assignments[{{ rowIndex }}][stakes][{{ stake }}]" value="{{ assignment.stakes.get(stake) }}" min="0" step="1" required>
+                        {% endfor %}
+                        <button class="link js-remove-row" type="button">Remove</button>
+                    </div>
+                {% else %}
+                    <div class="table-row empty assignment-empty">
+                        <div>No assignments yet. Add rows below or regenerate.</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
         <div class="inline-actions">
             <button class="button ghost" type="button" id="add-assignment">Add assignment</button>
@@ -108,9 +177,43 @@
     const table = document.getElementById('assignment-table');
     const addButton = document.getElementById('add-assignment');
     const template = document.getElementById('assignment-template');
+    const validateButton = document.getElementById('validate-tournament');
+    const validateHint = document.getElementById('validate-hint');
+    const assignmentForm = document.querySelector('form[action$="/targets"]');
 
     if (!table || !addButton || !template) {
         return;
+    }
+
+    let hasUnsavedChanges = {{ draftAssignments is defined ? 'true' : 'false' }};
+    const markDirty = () => {
+        if (hasUnsavedChanges) {
+            return;
+        }
+
+        hasUnsavedChanges = true;
+        if (validateButton instanceof HTMLButtonElement) {
+            validateButton.disabled = true;
+            validateButton.setAttribute('aria-disabled', 'true');
+        }
+        if (validateHint instanceof HTMLElement) {
+            validateHint.hidden = false;
+        }
+    };
+
+    if (hasUnsavedChanges) {
+        if (validateButton instanceof HTMLButtonElement) {
+            validateButton.disabled = true;
+            validateButton.setAttribute('aria-disabled', 'true');
+        }
+        if (validateHint instanceof HTMLElement) {
+            validateHint.hidden = false;
+        }
+    }
+
+    if (assignmentForm instanceof HTMLFormElement) {
+        assignmentForm.addEventListener('input', markDirty);
+        assignmentForm.addEventListener('change', markDirty);
     }
 
     const removeRow = (event) => {
@@ -126,6 +229,7 @@
         const row = target.closest('.assignment-row');
         if (row) {
             row.remove();
+            markDirty();
         }
     };
 
@@ -143,6 +247,7 @@
         }
         if (row) {
             table.appendChild(row);
+            markDirty();
         }
     });
 })();

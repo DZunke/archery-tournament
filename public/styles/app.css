@@ -114,6 +114,12 @@ a {
   background: var(--accent-dark);
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .button.ghost {
   background: transparent;
   color: var(--ink);
@@ -138,6 +144,22 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.validation-results {
+  margin-top: 12px;
+}
+
+.validation-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  display: grid;
+  gap: 6px;
+}
+
+.validation-list strong {
+  color: var(--ink);
 }
 
 .inline-form {
@@ -396,6 +418,26 @@ a {
 
 .table.tournament-targets .link {
   justify-self: flex-end;
+}
+
+.assignment-row.has-errors {
+  border: 1px solid #f0c1bc;
+}
+
+.assignment-error-inline {
+  grid-column: 1 / -1;
+  background: #fff3f2;
+  border: 1px solid #f0c1bc;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  display: grid;
+  gap: 4px;
+}
+
+.validation-hint {
+  margin: 6px 0 0;
 }
 
 .table-row.table-head {

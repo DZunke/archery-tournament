@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Command\Tournament;
 
 use App\Application\Command\CommandResult;
+use App\Application\Service\TournamentValidation\TournamentValidationIssue;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Entity\ArcheryGround\Target;
 use App\Domain\Entity\Tournament;
@@ -33,22 +34,108 @@ final readonly class UpdateTournamentTargetsHandler
         $targetMap     = $this->buildTargetMap($archeryGround->targetStorage());
         $ruleset       = $tournament->ruleset();
 
-        $collection = new TournamentTargetCollection();
+        $collection            = new TournamentTargetCollection();
+        $issues                = [];
+        $targetLaneAssignments = [];
+        $duplicateRows         = [];
+        $laneRoundAssignments  = [];
+        $duplicateLaneRows     = [];
 
         foreach ($command->assignments as $assignment) {
+            $rowNumber   = $assignment->rowIndex + 1;
+            $rowHasIssue = false;
+
             if ($assignment->round <= 0) {
-                return CommandResult::failure('Round must be greater than zero.');
+                $issues[]    = new TournamentValidationIssue(
+                    rule: 'Round Number',
+                    message: 'Round must be greater than zero.',
+                    context: ['row' => $rowNumber],
+                );
+                $rowHasIssue = true;
             }
 
             $lane   = $laneMap[$assignment->shootingLaneId] ?? null;
             $target = $targetMap[$assignment->targetId] ?? null;
 
             if (! $lane instanceof ShootingLane) {
-                return CommandResult::failure('Invalid shooting lane selected.');
+                $issues[]    = new TournamentValidationIssue(
+                    rule: 'Shooting Lane',
+                    message: 'Invalid shooting lane selected.',
+                    context: ['row' => $rowNumber],
+                );
+                $rowHasIssue = true;
             }
 
             if (! $target instanceof Target) {
-                return CommandResult::failure('Invalid target selected.');
+                $issues[]    = new TournamentValidationIssue(
+                    rule: 'Target',
+                    message: 'Invalid target selected.',
+                    context: ['row' => $rowNumber],
+                );
+                $rowHasIssue = true;
+            }
+
+            if ($lane instanceof ShootingLane && $target instanceof Target) {
+                $existingLane = $targetLaneAssignments[$target->id()] ?? null;
+                if ($existingLane !== null && $existingLane['laneId'] !== $lane->id()) {
+                    $duplicateKey = $target->id() . ':' . $existingLane['row'];
+                    if (! isset($duplicateRows[$duplicateKey])) {
+                        $issues[]                     = new TournamentValidationIssue(
+                            rule: 'Target Uniqueness',
+                            message: 'Target "' . $target->name() . '" is already assigned to a different lane (row ' . $existingLane['row'] . ').',
+                            context: ['row' => $existingLane['row']],
+                        );
+                        $duplicateRows[$duplicateKey] = true;
+                    }
+
+                    $issues[]    = new TournamentValidationIssue(
+                        rule: 'Target Uniqueness',
+                        message: 'Target "' . $target->name() . '" is already assigned to a different lane (row ' . $existingLane['row'] . ').',
+                        context: ['row' => $rowNumber],
+                    );
+                    $rowHasIssue = true;
+                } else {
+                    $targetLaneAssignments[$target->id()] = [
+                        'laneId' => $lane->id(),
+                        'row' => $rowNumber,
+                    ];
+                }
+            }
+
+            if ($lane instanceof ShootingLane && $assignment->round > 0) {
+                $existingLane = $laneRoundAssignments[$assignment->round][$lane->id()] ?? null;
+                if ($existingLane !== null && $existingLane['row'] !== $rowNumber) {
+                    $duplicateKey = $assignment->round . ':' . $lane->id() . ':' . $existingLane['row'];
+                    if (! isset($duplicateLaneRows[$duplicateKey])) {
+                        $issues[]                         = new TournamentValidationIssue(
+                            rule: 'Lane Uniqueness',
+                            message: 'Lane "' . $lane->name() . '" is already used in round ' . $assignment->round . ' (row ' . $existingLane['row'] . ').',
+                            context: ['row' => $existingLane['row'], 'round' => $assignment->round],
+                        );
+                        $duplicateLaneRows[$duplicateKey] = true;
+                    }
+
+                    $issues[]    = new TournamentValidationIssue(
+                        rule: 'Lane Uniqueness',
+                        message: 'Lane "' . $lane->name() . '" is already used in round ' . $assignment->round . ' (row ' . $existingLane['row'] . ').',
+                        context: ['row' => $rowNumber, 'round' => $assignment->round],
+                    );
+                    $rowHasIssue = true;
+                } else {
+                    $laneRoundAssignments[$assignment->round][$lane->id()] = ['row' => $rowNumber];
+                }
+            }
+
+            if ($rowHasIssue) {
+                continue;
+            }
+
+            if (! $lane instanceof ShootingLane) {
+                continue;
+            }
+
+            if (! $target instanceof Target) {
+                continue;
             }
 
             $targetType = $target->type();
@@ -57,19 +144,39 @@ final readonly class UpdateTournamentTargetsHandler
 
             foreach ($ranges as $stake => $range) {
                 if (! isset($assignment->stakes[$stake])) {
-                    return CommandResult::failure('Missing stake distance for ' . $stake . '.');
+                    $issues[]    = new TournamentValidationIssue(
+                        rule: 'Stake Distance',
+                        message: 'Missing stake distance for "' . $stake . '".',
+                        context: ['row' => $rowNumber, 'stake' => $stake],
+                    );
+                    $rowHasIssue = true;
+                    continue;
                 }
 
                 $distance = $assignment->stakes[$stake];
                 $maxLane  = min($range['max'], $lane->maxDistance());
 
                 if ($distance < $range['min'] || $distance > $maxLane) {
-                    return CommandResult::failure(
-                        'Stake distance for ' . $stake . ' must be between ' . $range['min'] . ' and ' . $maxLane . '.',
+                    $issues[]    = new TournamentValidationIssue(
+                        rule: 'Stake Distance',
+                        message: 'Stake "' . $stake . '" must be between ' . $range['min'] . 'm and ' . $maxLane . 'm.',
+                        context: [
+                            'row' => $rowNumber,
+                            'stake' => $stake,
+                            'min' => $range['min'],
+                            'max' => $maxLane,
+                            'actual' => $distance,
+                        ],
                     );
+                    $rowHasIssue = true;
+                    continue;
                 }
 
                 $stakes[$stake] = $distance;
+            }
+
+            if ($rowHasIssue) {
+                continue;
             }
 
             $stakeDistances = new StakeDistances($stakes);
@@ -84,7 +191,18 @@ final readonly class UpdateTournamentTargetsHandler
         }
 
         if ($collection->count() > $tournament->numberOfTargets()) {
-            return CommandResult::failure('Number of assignments exceeds the configured target count.');
+            $issues[] = new TournamentValidationIssue(
+                rule: 'Target Count',
+                message: 'Number of assignments exceeds the configured target count.',
+                context: [
+                    'expected' => $tournament->numberOfTargets(),
+                    'actual' => $collection->count(),
+                ],
+            );
+        }
+
+        if ($issues !== []) {
+            return CommandResult::failure('Tournament assignments failed validation.', ['issues' => $issues]);
         }
 
         $tournament->replaceTargets($collection);
