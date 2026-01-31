@@ -10,6 +10,7 @@
     </div>
     <div class="inline-actions">
         <a class="button ghost" href="{{ path('tournament_index') }}">Back</a>
+        <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
         <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
             <button class="button danger" type="submit">Delete</button>
         </form>

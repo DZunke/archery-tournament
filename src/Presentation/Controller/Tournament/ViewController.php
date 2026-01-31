@@ -6,7 +6,6 @@ namespace App\Presentation\Controller\Tournament;
 
 use App\Application\Bus\QueryBus;
 use App\Application\Query\Tournament\GetTournament;
-use App\Application\Service\TournamentValidation\TournamentValidator;
 use App\Domain\Entity\Tournament;
 use App\Domain\ValueObject\TargetType;
 use App\Presentation\View\TournamentAssignmentViewBuilder;
@@ -17,16 +16,15 @@ use Symfony\Component\Routing\Attribute\Route;
 use function array_key_first;
 use function array_keys;
 
-final class ValidateController extends AbstractController
+final class ViewController extends AbstractController
 {
     public function __construct(
         private readonly QueryBus $queryBus,
-        private readonly TournamentValidator $tournamentValidator,
         private readonly TournamentAssignmentViewBuilder $assignmentViewBuilder,
     ) {
     }
 
-    #[Route('/tournaments/{id}/validate', name: 'tournament_validate', methods: ['POST'])]
+    #[Route('/tournaments/{id}/view', name: 'tournament_view', methods: ['GET'])]
     public function __invoke(string $id): Response
     {
         $tournament = $this->queryBus->ask(new GetTournament($id));
@@ -34,25 +32,18 @@ final class ValidateController extends AbstractController
             throw $this->createNotFoundException('Tournament not found.');
         }
 
-        $validationResult = $this->tournamentValidator->validate($tournament);
-        if ($validationResult->isValid()) {
-            $this->addFlash('success', 'Tournament validation passed.');
-        } else {
-            $this->addFlash('error', 'Tournament validation found issues.');
-        }
-
         $ruleset       = $tournament->ruleset();
         $targetTypes   = $ruleset->allowedTargetTypes();
         $firstType     = $targetTypes[array_key_first($targetTypes)] ?? TargetType::ANIMAL_GROUP_1;
         $stakeKeys     = array_keys($ruleset->stakeDistanceRanges($firstType));
         $sortedTargets = $this->assignmentViewBuilder->sortTargets($tournament);
+        $cards         = $this->assignmentViewBuilder->buildCards($tournament, $sortedTargets);
 
-        return $this->render('tournament/show.html.twig', [
+        return $this->render('tournament/view.html.twig', [
             'tournament' => $tournament,
             'archeryGround' => $tournament->archeryGround(),
             'stakeKeys' => $stakeKeys,
-            'validationResult' => $validationResult,
-            'sortedTargets' => $sortedTargets,
+            'assignmentCards' => $cards,
         ]);
     }
 }

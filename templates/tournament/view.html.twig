@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ tournament.name }} · View Mode{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>{{ tournament.name }}</h1>
+        <p class="muted">Ground: {{ archeryGround.name }} · {{ tournament.eventDate|date('Y-m-d') }}</p>
+    </div>
+    <div class="inline-actions">
+        <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Back to edit</a>
+        <a class="button ghost" href="{{ path('tournament_index') }}">All tournaments</a>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>Assignments · View Mode</h2>
+        <span class="badge">Ordered by round & lane</span>
+    </div>
+    <p class="muted">Designed for quick reading on desktop and mobile.</p>
+    {% set roundCounts = {} %}
+    {% for card in assignmentCards|default([]) %}
+        {% set roundCounts = roundCounts|merge({ (card.round): (roundCounts[card.round]|default(0) + 1) }) %}
+    {% endfor %}
+
+    {% if assignmentCards|default([]) is empty %}
+        <div class="empty-state">No assignments yet.</div>
+    {% else %}
+        {% set rounds = [] %}
+        {% for card in assignmentCards %}
+            {% if card.round not in rounds %}
+                {% set rounds = rounds|merge([card.round]) %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="round-tabs" role="tablist" aria-label="Rounds">
+            {% for round in rounds %}
+                <button
+                    class="round-tab{% if loop.first %} is-active{% endif %}"
+                    type="button"
+                    role="tab"
+                    data-round="{{ round }}"
+                    aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                    aria-controls="round-panel-{{ round }}"
+                >
+                    Round {{ round }}
+                    <span class="round-count">{{ roundCounts[round] }} targets</span>
+                </button>
+            {% endfor %}
+        </div>
+
+        {% for round in rounds %}
+            <section class="round-panel{% if loop.first %} is-active{% endif %}" id="round-panel-{{ round }}" role="tabpanel">
+                <div class="assignment-cards assignment-cards--view">
+                    {% for card in assignmentCards %}
+                        {% if card.round == round %}
+                            <article class="assignment-card">
+                                <div class="assignment-card__media">
+                                    {% if card.targetImage %}
+                                        <img src="{{ card.targetImage }}" alt="{{ card.targetName }}">
+                                    {% else %}
+                                        <div class="image-placeholder">No image</div>
+                                    {% endif %}
+                                </div>
+                                <div class="assignment-card__meta">
+                                    <div>
+                                        <div class="assignment-card__lane">{{ card.laneName }}</div>
+                                        <div class="assignment-card__target">{{ card.targetName }}</div>
+                                    </div>
+                                    <span class="badge">{{ card.targetType }}</span>
+                                </div>
+                                <div class="assignment-card__stakes">
+                                    {% for stake in stakeKeys %}
+                                        {% set stakeValue = card.stakes[stake]|default(null) %}
+                                        <div class="stakes-row">
+                                            <span class="stakes-label">{{ stake|capitalize }}</span>
+                                            <span class="stakes-value">
+                                                {% if stakeValue is not null %}
+                                                    {{ stakeValue }}m
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                                {% if card.diffs[stake] is defined %}
+                                                    {% set delta = card.diffs[stake] %}
+                                                    <span class="stake-diff {{ delta > 0 ? 'positive' : 'negative' }}">
+                                                        {{ delta > 0 ? '+' : '' }}{{ delta }}m
+                                                    </span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if card.diffRound is not null %}
+                                    <p class="muted diff-note">Δ vs round {{ card.diffRound }}</p>
+                                {% endif %}
+                            </article>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endfor %}
+    {% endif %}
+</section>
+
+<script>
+(() => {
+    const tabs = Array.from(document.querySelectorAll('.round-tab'));
+    const panels = Array.from(document.querySelectorAll('.round-panel'));
+    if (tabs.length === 0) {
+        return;
+    }
+
+    const activate = (round) => {
+        tabs.forEach((tab) => {
+            const isActive = tab.dataset.round === round;
+            tab.classList.toggle('is-active', isActive);
+            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        panels.forEach((panel) => {
+            panel.classList.toggle('is-active', panel.id === `round-panel-${round}`);
+        });
+    };
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            if (tab.dataset.round) {
+                activate(tab.dataset.round);
+            }
+        });
+    });
+
+    const initial = tabs.find((tab) => tab.classList.contains('is-active')) ?? tabs[0];
+    if (initial && initial.dataset.round) {
+        activate(initial.dataset.round);
+    }
+})();
+</script>
+{% endblock %}

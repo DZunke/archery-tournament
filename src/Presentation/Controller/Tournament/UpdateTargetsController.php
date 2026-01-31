@@ -11,6 +11,7 @@ use App\Application\Service\TournamentValidation\TournamentValidationIssue;
 use App\Domain\Entity\Tournament;
 use App\Domain\ValueObject\TargetType;
 use App\Presentation\Input\Tournament\UpdateTournamentTargetsInput;
+use App\Presentation\View\TournamentAssignmentViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,6 +30,7 @@ final class UpdateTargetsController extends AbstractController
     public function __construct(
         private readonly CommandBus $commandBus,
         private readonly QueryBus $queryBus,
+        private readonly TournamentAssignmentViewBuilder $assignmentViewBuilder,
     ) {
     }
 
@@ -88,6 +90,8 @@ final class UpdateTargetsController extends AbstractController
 
         [$issuesByRow, $generalIssues] = $this->groupIssuesByRow($issues);
 
+        $sortedTargets = $this->assignmentViewBuilder->sortTargets($tournament);
+
         return $this->render('tournament/show.html.twig', [
             'tournament' => $tournament,
             'archeryGround' => $tournament->archeryGround(),
@@ -95,6 +99,7 @@ final class UpdateTargetsController extends AbstractController
             'draftAssignments' => $rows,
             'saveIssues' => $generalIssues,
             'saveIssuesByRow' => $issuesByRow,
+            'sortedTargets' => $sortedTargets,
         ]);
     }
 
