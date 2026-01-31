@@ -16,11 +16,13 @@ This project is organized around a clean separation of domain logic, application
 
 - **Presentation** (`src/Presentation`)
   - Symfony Console commands
+  - Web UI controllers and Twig templates
   - Maps user input into generation requests
 
 ## Current Boundaries
 
-- The generator does not persist data yet. Fixtures are used to simulate archery grounds.
+- Persistence uses Doctrine DBAL (no ORM) with custom hydrators.
+- Fixtures remain available for testing and manual seeding.
 - The pipeline produces a `Tournament` with assigned `TournamentTarget`s.
 - The CLI prints the tournament output.
 

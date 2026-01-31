@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Archery Grounds · Archery Tournament{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>Archery Grounds</h1>
+        <p>Create and manage shooting ranges, lanes, and target inventory.</p>
+    </div>
+    <div>
+        <a class="button" href="{{ path('archery_ground_new') }}">New Ground</a>
+    </div>
+</section>
+
+{% if grounds is empty %}
+    <div class="empty-state">
+        <h2>No archery grounds yet</h2>
+        <p>Start by creating your first ground and then add lanes and targets.</p>
+        <a class="button" href="{{ path('archery_ground_new') }}">Create the first ground</a>
+    </div>
+{% else %}
+    <div class="grid">
+        {% for ground in grounds %}
+            <article class="card">
+                <div class="card-header">
+                    <h2>{{ ground.name }}</h2>
+                    <span class="badge">{{ ground.id|slice(0, 8) }}</span>
+                </div>
+                <div class="card-meta">
+                    <div>
+                        <strong>{{ ground.shootingLanes|length }}</strong>
+                        <span>Lanes</span>
+                    </div>
+                    <div>
+                        <strong>{{ ground.targetStorage|length }}</strong>
+                        <span>Targets</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a class="button ghost" href="{{ path('archery_ground_show', {id: ground.id}) }}">Manage</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

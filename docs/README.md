@@ -12,6 +12,8 @@ This directory contains the living documentation for the project. Start here, th
 - `architecture.md`: system boundaries and current layering
 - `development.md`: local development setup and quality checks
 
+UI notes and workflows live in `development.md` for now. A dedicated UI guide can be added once the interface grows.
+
 ## How to Extend the Docs
 
 - Add new documents for major subsystems (persistence, UI, exports)

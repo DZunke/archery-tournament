@@ -18,10 +18,15 @@
         }
     ],
     "require": {
+        "doctrine/dbal": "^4.4",
+        "doctrine/doctrine-bundle": "^3.2",
         "symfony/console": "^8.0",
         "symfony/debug-bundle": "^8.0",
+        "symfony/dotenv": "^8.0",
         "symfony/framework-bundle": "^8.0",
+        "symfony/mime": "^8.0",
         "symfony/runtime": "*",
+        "symfony/twig-bundle": "^8.0",
         "symfony/uid": "^8.0",
         "symfony/yaml": "^8.0",
         "webmozart/assert": "^2.1"

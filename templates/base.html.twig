@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Archery Tournament Generator{% endblock %}</title>
+    <link rel="stylesheet" href="/styles/app.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <div>
+                <div class="brand">Archery Tournament</div>
+                <div class="brand-sub">Grounds, lanes, targets</div>
+            </div>
+            <nav class="nav">
+                <a href="{{ path('archery_ground_index') }}">Archery Grounds</a>
+                <a href="{{ path('tournament_index') }}">Tournaments</a>
+                <a href="{{ path('archery_ground_new') }}">Create Ground</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container main">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash flash-{{ label }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+        {% block body %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <span>Archery Tournament Generator · Early Stage</span>
+        </div>
+    </footer>
+</body>
+</html>

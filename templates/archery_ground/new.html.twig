@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Archery Ground · Archery Tournament{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>Create Archery Ground</h1>
+        <p>Give the ground a name. You can add lanes and targets next.</p>
+    </div>
+    <div>
+        <a class="button ghost" href="{{ path('archery_ground_index') }}">Back</a>
+    </div>
+</section>
+
+<div class="card">
+    <form method="post" class="form">
+        <label class="field">
+            <span>Name</span>
+            <input type="text" name="name" placeholder="e.g. Forest Range" required>
+        </label>
+        {% if error %}
+            <p class="form-error">{{ error }}</p>
+        {% endif %}
+        <button class="button" type="submit">Create ground</button>
+    </form>
+</div>
+{% endblock %}

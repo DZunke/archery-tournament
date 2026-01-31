@@ -1,0 +1,13 @@
+services:
+  app:
+    image: dunglas/frankenphp:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/app
+      - ./Caddyfile:/etc/frankenphp/Caddyfile
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: 1
+      APP_SECRET: dev-secret-change-me
+      DATABASE_URL: "sqlite:////app/var/data.db"

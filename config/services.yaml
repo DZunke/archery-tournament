@@ -8,3 +8,5 @@ services:
     exclude:
       - '../src/{Kernel.php}'
       - '../src/Domain/*'
+
+  App\Domain\Repository\ArcheryGroundRepository: '@App\Infrastructure\Persistence\Dbal\DbalArcheryGroundRepository'

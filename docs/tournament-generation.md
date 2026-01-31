@@ -10,6 +10,10 @@ The generator creates a tournament plan from three inputs:
 - An archery ground (lanes and target inventory)
 - A requested target count
 
+Archery ground data currently comes from the database via `ArcheryGroundRepository`.
+
+The CLI command now requires an archery ground ID to select which ground is used for generation.
+
 The output is a `Tournament` populated with `TournamentTarget` entries, each containing:
 
 - round number

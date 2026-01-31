@@ -9,11 +9,18 @@ use Webmozart\Assert\Assert;
 final class ShootingLane
 {
     public function __construct(
+        private readonly string $id,
         private readonly string $name,
         private readonly float $maxDistance,
     ) {
+        Assert::uuid($this->id, 'The shooting lane id must be a valid UUID.');
         Assert::notEmpty($this->name, 'The shooting lane name must not be empty.');
         Assert::greaterThan($this->maxDistance, 0, 'The maximum distance must be greater than zero.');
+    }
+
+    public function id(): string
+    {
+        return $this->id;
     }
 
     public function name(): string

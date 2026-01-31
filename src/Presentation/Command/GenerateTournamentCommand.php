@@ -8,6 +8,7 @@ use App\Application\Query\GetArcheryGroundQuery;
 use App\Application\Service\TournamentGenerator\DTO\TournamentGenerationRequest;
 use App\Application\Service\TournamentGenerator\TournamentGenerationPipeline;
 use App\Domain\ValueObject\Ruleset;
+use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
@@ -31,6 +32,11 @@ final class GenerateTournamentCommand
 
     public function __invoke(
         SymfonyStyle $io,
+        #[Argument(
+            name: 'archery-ground-id',
+            description: 'ID of the archery ground to generate the tournament for.',
+        )]
+        string $archeryGroundId,
         #[Option(
             name: 'randomize-stakes-between-rounds',
             shortcut: 'r',
@@ -41,7 +47,7 @@ final class GenerateTournamentCommand
         $io->title('Generate Tournament Command');
 
         // todo: ask and fetch the correct archery ground to use
-        $archeryGround = $this->getArcheryGroundQuery->query();
+        $archeryGround = $this->getArcheryGroundQuery->query($archeryGroundId);
         // todo: implement to ask for the amount of targets for this tournament
         $amountOfTargets = 24;
         // todo: implement to ask for the ruleset for this tournament

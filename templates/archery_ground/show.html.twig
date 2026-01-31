@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ archeryGround.name }} · Archery Ground{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>{{ archeryGround.name }}</h1>
+        <p class="muted">ID {{ archeryGround.id }}</p>
+    </div>
+    <div class="inline-actions">
+        <form method="post" action="{{ path('archery_ground_rename', {id: archeryGround.id}) }}" class="inline-form">
+            <input type="text" name="name" value="{{ archeryGround.name }}" aria-label="Rename archery ground">
+            <button class="button" type="submit">Rename</button>
+        </form>
+        <form method="post" action="{{ path('archery_ground_delete', {id: archeryGround.id}) }}" onsubmit="return confirm('Delete this archery ground?')">
+            <button class="button danger" type="submit">Delete</button>
+        </form>
+    </div>
+</section>
+
+{% if errors.ground is defined %}
+    <p class="form-error">{{ errors.ground }}</p>
+{% endif %}
+
+<div class="split">
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Lanes</h2>
+            <span class="badge">{{ archeryGround.shootingLanes|length }}</span>
+        </div>
+        <form method="post" class="form" action="{{ path('archery_ground_add_lane', {id: archeryGround.id}) }}">
+            <div class="form-row">
+                <label class="field">
+                    <span>Lane name</span>
+                    <input type="text" name="name" placeholder="Lane 1" required>
+                </label>
+                <label class="field">
+                    <span>Max distance (m)</span>
+                    <input type="number" name="max_distance" step="0.1" min="0.1" placeholder="30" required>
+                </label>
+            </div>
+            {% if errors.lane is defined %}
+                <p class="form-error">{{ errors.lane }}</p>
+            {% endif %}
+            <button class="button" type="submit">Add lane</button>
+        </form>
+
+        <div class="table lanes">
+            <div class="table-row table-head">
+                <div>Name</div>
+                <div>Max Distance</div>
+                <div></div>
+            </div>
+            {% for lane in archeryGround.shootingLanes %}
+                <div class="table-row">
+                    <div>{{ lane.name }}</div>
+                    <div>{{ lane.maxDistance }} m</div>
+                    <div class="table-actions">
+                        <form method="post" action="{{ path('archery_ground_delete_lane', {id: archeryGround.id, laneId: lane.id}) }}" onsubmit="return confirm('Remove this lane?')">
+                            <button class="link" type="submit">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="table-row empty">
+                    <div>No lanes yet.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Targets</h2>
+            <span class="badge">{{ archeryGround.targetStorage|length }}</span>
+        </div>
+        <form method="post" class="form" action="{{ path('archery_ground_add_target', {id: archeryGround.id}) }}" enctype="multipart/form-data">
+            <div class="form-row">
+                <label class="field">
+                    <span>Type</span>
+                    <select name="type" required>
+                        {% for type in targetTypes %}
+                            <option value="{{ type.value }}">{{ type.value }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Target name</span>
+                    <input type="text" name="name" placeholder="Deer" required>
+                </label>
+                <label class="field">
+                    <span>Target image</span>
+                    <input type="file" name="image" accept="image/*" required>
+                </label>
+            </div>
+            {% if errors.target is defined %}
+                <p class="form-error">{{ errors.target }}</p>
+            {% endif %}
+            <button class="button" type="submit">Add target</button>
+        </form>
+
+        <div class="table targets">
+            <div class="table-row table-head">
+                <div>Name</div>
+                <div>Type</div>
+                <div>Image</div>
+                <div></div>
+            </div>
+            {% for target in archeryGround.targetStorage %}
+                <div class="table-row">
+                    <div>{{ target.name }}</div>
+                    <div>{{ target.type.value }}</div>
+                    <div class="image-cell">
+                        {% if target.image %}
+                            <div class="image-preview">
+                                <img src="{{ target.image }}" alt="{{ target.name }}">
+                                <div class="preview-pop">
+                                    <img src="{{ target.image }}" alt="{{ target.name }} preview">
+                                </div>
+                            </div>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                    <div class="table-actions">
+                        <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
+                            <button class="link" type="submit">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="table-row empty">
+                    <div>No targets yet.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Tournament Generation</h2>
+        <span class="badge">Coming soon</span>
+    </div>
+    <p class="muted">This will use the configured lanes and targets to generate tournaments directly in the UI. For now, use the CLI command.</p>
+    <a class="button ghost" href="{{ path('archery_ground_index') }}" aria-disabled="true">Generate tournament (soon)</a>
+</section>
+{% endblock %}

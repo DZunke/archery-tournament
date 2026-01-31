@@ -21,6 +21,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addTarget(
             new Target(
+                id: Uuid::v4()->toRfc4122(),
                 type: TargetType::ANIMAL_GROUP_1,
                 name: 'Deer Target',
                 image: 'deer.png',
@@ -29,6 +30,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addTarget(
             new Target(
+                id: Uuid::v4()->toRfc4122(),
                 type: TargetType::ANIMAL_GROUP_2,
                 name: 'Boar Target',
                 image: 'boar.png',
@@ -37,6 +39,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addTarget(
             new Target(
+                id: Uuid::v4()->toRfc4122(),
                 type: TargetType::ANIMAL_GROUP_3,
                 name: 'Bear Target',
                 image: 'bear.png',
@@ -45,6 +48,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addTarget(
             new Target(
+                id: Uuid::v4()->toRfc4122(),
                 type: TargetType::ANIMAL_GROUP_4,
                 name: 'Wolf Target',
                 image: 'wolf.png',
@@ -53,6 +57,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addTarget(
             new Target(
+                id: Uuid::v4()->toRfc4122(),
                 type: TargetType::ANIMAL_GROUP_4,
                 name: 'Rabbit Target',
                 image: 'rabbit.png',
@@ -61,6 +66,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addTarget(
             new Target(
+                id: Uuid::v4()->toRfc4122(),
                 type: TargetType::ANIMAL_GROUP_4,
                 name: 'Marmot Target',
                 image: 'marmot.png',
@@ -69,6 +75,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addShootingLane(
             new ShootingLane(
+                id: Uuid::v4()->toRfc4122(),
                 name: 'Lane 1',
                 maxDistance: 30.0,
             ),
@@ -76,6 +83,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addShootingLane(
             new ShootingLane(
+                id: Uuid::v4()->toRfc4122(),
                 name: 'Lane 2',
                 maxDistance: 50.0,
             ),
@@ -83,6 +91,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addShootingLane(
             new ShootingLane(
+                id: Uuid::v4()->toRfc4122(),
                 name: 'Lane 3',
                 maxDistance: 25.0,
             ),
@@ -90,6 +99,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addShootingLane(
             new ShootingLane(
+                id: Uuid::v4()->toRfc4122(),
                 name: 'Lane 4',
                 maxDistance: 23.0,
             ),
@@ -97,6 +107,7 @@ final class ArcheryGroundSmallSized
 
         $archeryGround->addShootingLane(
             new ShootingLane(
+                id: Uuid::v4()->toRfc4122(),
                 name: 'Lane 5',
                 maxDistance: 42.0,
             ),

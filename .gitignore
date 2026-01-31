@@ -1,5 +1,7 @@
 /vendor/
 /var/
 /config/reference.php
+/public/uploads/*
+!/public/uploads/.gitkeep
 
 .phpcs-cache

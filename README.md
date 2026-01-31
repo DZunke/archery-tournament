@@ -11,12 +11,29 @@ This project is early-stage. The tournament generation pipeline is the primary w
 Requirements:
 
 - PHP 8.4
+- SQLite PDO extension (`pdo_sqlite`)
+- File uploads write to `public/uploads/targets`
 
-Run the generator:
+Run the generator (requires an archery ground ID from the UI):
 
 ```bash
-php bin/console app:generate-tournament
+php bin/console app:db:init
+php bin/console app:generate-tournament <archery-ground-id>
 ```
+
+Run the UI:
+
+```bash
+php -S 127.0.0.1:8000 -t public
+```
+
+Run via Docker (FrankenPHP):
+
+```bash
+docker compose up --build
+```
+
+Then open: `http://localhost:8080`
 
 Optional flags:
 
