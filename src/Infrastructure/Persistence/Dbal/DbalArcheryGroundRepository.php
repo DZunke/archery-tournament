@@ -14,10 +14,6 @@ use App\Infrastructure\Persistence\Dbal\Hydrator\TargetHydrator;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Uid\Uuid;
 
-use function array_filter;
-use function array_map;
-use function array_values;
-
 final readonly class DbalArcheryGroundRepository implements ArcheryGroundRepository
 {
     public function __construct(
@@ -66,6 +62,10 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             return null;
         }
 
+        $row       = [
+            'id' => (string) $row['id'],
+            'name' => (string) $row['name'],
+        ];
         $lanesRows = $this->connection->fetchAllAssociative(
             'SELECT id, name, max_distance FROM shooting_lanes WHERE archery_ground_id = ? ORDER BY name',
             [$id],
@@ -76,15 +76,17 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             [$id],
         );
 
-        $lanes = array_values(array_filter(array_map(
-            $this->shootingLaneHydrator->hydrate(...),
-            $lanesRows,
-        )));
+        $lanes = [];
+        foreach ($lanesRows as $laneRow) {
+            /** @var array{id: string, name: string, max_distance: float|string} $laneRow */
+            $lanes[] = $this->shootingLaneHydrator->hydrate($laneRow);
+        }
 
-        $targets = array_values(array_filter(array_map(
-            $this->targetHydrator->hydrate(...),
-            $targetRows,
-        )));
+        $targets = [];
+        foreach ($targetRows as $targetRow) {
+            /** @var array{id: string, type: string, name: string, image: string} $targetRow */
+            $targets[] = $this->targetHydrator->hydrate($targetRow);
+        }
 
         return $this->archeryGroundHydrator->hydrate($row, $lanes, $targets);
     }

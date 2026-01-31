@@ -10,3 +10,8 @@ services:
       - '../src/Domain/*'
 
   App\Domain\Repository\ArcheryGroundRepository: '@App\Infrastructure\Persistence\Dbal\DbalArcheryGroundRepository'
+  App\Application\Service\TargetImageStorage: '@App\Infrastructure\Storage\LocalTargetImageStorage'
+
+  App\Infrastructure\Storage\LocalTargetImageStorage:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
