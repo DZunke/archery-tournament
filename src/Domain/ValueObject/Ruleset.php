@@ -6,7 +6,13 @@ namespace App\Domain\ValueObject;
 
 use Webmozart\Assert\Assert;
 
+use function array_map;
+use function assert;
+use function count;
 use function in_array;
+use function max;
+use function min;
+use function usort;
 
 enum Ruleset: string
 {
@@ -25,6 +31,13 @@ enum Ruleset: string
         };
     }
 
+    public function name(): string
+    {
+        return match ($this) {
+            self::DSB_3D => 'DSB 3D',
+        };
+    }
+
     /** @return list<TargetType> */
     public function requiredTargetTypes(): array
     {
@@ -38,10 +51,23 @@ enum Ruleset: string
             'Target type is not allowed for this ruleset.',
         );
 
-        $ranges = $this->stakeDistanceRanges($targetType);
-        $maxDistances = array_map(static fn(array $range) => $range['max'], $ranges);
+        $ranges       = $this->stakeDistanceRanges($targetType);
+        $maxDistances = array_map(static fn (array $range) => $range['max'], $ranges);
+        assert(count($maxDistances) > 0);
 
         return max($maxDistances);
+    }
+
+    public function getOverallMinStakeDistance(): float
+    {
+        $minDistances = array_map(
+            $this->getMinStakeDistance(...),
+            $this->allowedTargetTypes(),
+        );
+
+        assert(count($minDistances) > 0);
+
+        return min($minDistances);
     }
 
     public function getMinStakeDistance(TargetType $targetType): float
@@ -51,8 +77,9 @@ enum Ruleset: string
             'Target type is not allowed for this ruleset.',
         );
 
-        $ranges = $this->stakeDistanceRanges($targetType);
-        $maxDistances = array_map(static fn(array $range) => $range['min'], $ranges);
+        $ranges       = $this->stakeDistanceRanges($targetType);
+        $maxDistances = array_map(static fn (array $range) => $range['min'], $ranges);
+        assert(count($maxDistances) > 0);
 
         return min($maxDistances);
     }
@@ -89,5 +116,31 @@ enum Ruleset: string
                 ],
             },
         };
+    }
+
+    /** @return TargetType[] */
+    public function targetTypesOrderedByMinDistance(): array
+    {
+        $targetTypes = $this->allowedTargetTypes();
+
+        usort(
+            $targetTypes,
+            fn (TargetType $a, TargetType $b) => $this->getMinStakeDistance($a) <=> $this->getMinStakeDistance($b),
+        );
+
+        return $targetTypes;
+    }
+
+    /** @return TargetType[] */
+    public function targetTypesOrderedByMaxDistance(): array
+    {
+        $targetTypes = $this->allowedTargetTypes();
+
+        usort(
+            $targetTypes,
+            fn (TargetType $a, TargetType $b) => $this->getMaxStakeDistance($b) <=> $this->getMaxStakeDistance($a),
+        );
+
+        return $targetTypes;
     }
 }

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Command;
 
 use App\Application\Query\GetArcheryGroundQuery;
-use App\Application\Service\TournamentRandomCalculator;
-use App\Domain\Entity\Tournament;
+use App\Application\Service\TournamentGenerator\TournamentGenerationPipeline;
 use App\Domain\ValueObject\Ruleset;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -24,6 +23,7 @@ final class GenerateTournamentCommand
 {
     public function __construct(
         private readonly GetArcheryGroundQuery $getArcheryGroundQuery,
+        private readonly TournamentGenerationPipeline $tournamentGenerationPipeline,
     ) {
     }
 
@@ -45,12 +45,11 @@ final class GenerateTournamentCommand
         ]);
         $table->render();
 
-        $tournamentTarget = new TournamentRandomCalculator();
-        $tournament = $tournamentTarget->generate(
+        $tournament = $this->tournamentGenerationPipeline->generate(
             archeryGround: $archeryGround,
             ruleset: $ruleset,
             amountOfTargets: $amountOfTargets,
-        )->toTournament('Foo Tournament');
+        );
 
         $assignments = $tournament->targets();
 

@@ -6,6 +6,7 @@ namespace App\Domain\Entity;
 
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Entity\ArcheryGround\Target;
+use App\Domain\ValueObject\TargetType;
 use Symfony\Component\Uid\Uuid;
 use Webmozart\Assert\Assert;
 
@@ -49,6 +50,15 @@ final class ArcheryGround
     public function targetStorage(): array
     {
         return $this->targetStorage;
+    }
+
+    /** @return list<Target> */
+    public function targetStorageByType(TargetType $targetType): array
+    {
+        return array_filter(
+            $this->targetStorage,
+            static fn (Target $target) => $target->type() === $targetType,
+        );
     }
 
     public function addTarget(Target $target): void
