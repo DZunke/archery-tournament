@@ -20,25 +20,31 @@
         <a class="button" href="{{ path('archery_ground_new') }}">Create the first ground</a>
     </div>
 {% else %}
-    <div class="grid">
+    <div class="grid tournament-grid">
         {% for ground in grounds %}
-            <article class="card">
-                <div class="card-header">
-                    <h2>{{ ground.name }}</h2>
-                    <span class="badge">{{ ground.id|slice(0, 8) }}</span>
-                </div>
-                <div class="card-meta">
+            <article class="card tournament-card">
+                <div class="tournament-card__top">
                     <div>
+                        <h2>{{ ground.name }}</h2>
+                        <p class="muted">ID {{ ground.id|slice(0, 8) }}</p>
+                    </div>
+                    <div class="tournament-card__tags">
+                        <span class="badge">Ground</span>
+                    </div>
+                </div>
+                <div class="tournament-card__stats">
+                    <div class="tournament-card__stat">
                         <strong>{{ ground.shootingLanes|length }}</strong>
                         <span>Lanes</span>
                     </div>
-                    <div>
+                    <div class="tournament-card__stat">
                         <strong>{{ ground.targetStorage|length }}</strong>
                         <span>Targets</span>
                     </div>
                 </div>
-                <div class="card-actions">
+                <div class="tournament-card__actions">
                     <a class="button ghost" href="{{ path('archery_ground_show', {id: ground.id}) }}">Manage</a>
+                    <a class="button ghost" href="{{ path('tournament_new', {archery_ground_id: ground.id}) }}">Create tournament</a>
                 </div>
             </article>
         {% endfor %}
