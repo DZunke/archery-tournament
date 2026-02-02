@@ -1,3 +1,5 @@
+**DANGER** - This Project is primary vibe coded for experimenting with vibe coding tactics
+
 # Archery Tournament Generator
 
 Generate archery tournaments from a ruleset, available lanes, and target inventory. The generator assigns targets to lanes and produces stake distances within the ruleset ranges. Archery grounds, targets, and tournaments can be managed in the UI, while the CLI remains available for quick generation.
