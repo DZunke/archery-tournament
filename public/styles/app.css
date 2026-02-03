@@ -948,11 +948,44 @@ a {
 }
 
 @media (max-width: 720px) {
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .nav {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav a {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+
+  .nav-user {
+    font-size: 0.8rem;
+  }
+
   .page-header {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-header h1 {
+    font-size: 1.6rem;
   }
 
   .inline-actions {
+    width: 100%;
+  }
+
+  .inline-actions .button,
+  .inline-actions a.button,
+  .inline-actions form,
+  .inline-actions form .button {
     width: 100%;
   }
 
@@ -962,8 +995,73 @@ a {
     align-items: stretch;
   }
 
+  .inline-form input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-bar .field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filter-bar .button,
+  .filter-bar a.button {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tournament-card__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tournament-card__tags {
+    justify-content: flex-start;
+  }
+
+  .tournament-card__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
   .table-row {
     grid-template-columns: 1fr;
+  }
+
+  .table-row.table-head {
+    display: none;
+  }
+
+  .table-actions {
+    justify-content: flex-start;
+  }
+
+  .table.tournament-targets {
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .table.tournament-targets .table-row {
+    min-width: 720px;
+    grid-template-columns: 0.6fr 1.4fr 1.6fr repeat(3, 0.8fr) auto;
+  }
+
+  .table.tournament-targets .table-row.table-head {
+    display: grid;
   }
 
   .assignment-card__meta {
@@ -983,6 +1081,19 @@ a {
   }
 
   .next-tournament__actions {
+    width: 100%;
+  }
+
+  .next-tournament__actions .button {
+    width: 100%;
+  }
+
+  .modal__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .modal__actions .button {
     width: 100%;
   }
 }
