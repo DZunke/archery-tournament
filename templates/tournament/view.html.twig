@@ -70,7 +70,7 @@
                                         <div class="assignment-card__lane">{{ card.laneName }}</div>
                                         <div class="assignment-card__target">{{ card.targetName }}</div>
                                     </div>
-                                    <span class="badge">{{ card.targetType }}</span>
+                                    <span class="badge">{{ target_type_label(card.targetType) }}</span>
                                 </div>
                                 <div class="assignment-card__stakes">
                                     {% for stake in stakeKeys %}

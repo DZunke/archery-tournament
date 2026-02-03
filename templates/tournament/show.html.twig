@@ -98,7 +98,7 @@
                         <select name="assignments[{{ rowIndex }}][target_id]" required>
                             {% for target in archeryGround.targetStorage %}
                                 <option value="{{ target.id }}" {% if target.id == assignment.targetId %}selected{% endif %}>
-                                    {{ target.name }} ({{ target.type.value }})
+                                    {{ target.name }} ({{ target_type_label(target.type.value) }})
                                 </option>
                             {% endfor %}
                         </select>
@@ -135,7 +135,7 @@
                         <select name="assignments[{{ rowIndex }}][target_id]" required>
                             {% for target in archeryGround.targetStorage %}
                                 <option value="{{ target.id }}" {% if target.id == assignment.target.id %}selected{% endif %}>
-                                    {{ target.name }} ({{ target.type.value }})
+                                    {{ target.name }} ({{ target_type_label(target.type.value) }})
                                 </option>
                             {% endfor %}
                         </select>
@@ -168,7 +168,7 @@
         </select>
         <select name="assignments[__INDEX__][target_id]" required>
             {% for target in archeryGround.targetStorage %}
-                <option value="{{ target.id }}">{{ target.name }} ({{ target.type.value }})</option>
+                <option value="{{ target.id }}">{{ target.name }} ({{ target_type_label(target.type.value) }})</option>
             {% endfor %}
         </select>
         {% for stake in stakeKeys %}

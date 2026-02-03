@@ -2,6 +2,8 @@
 
 {% block title %}{{ archeryGround.name }} · Archery Ground{% endblock %}
 
+{% set defaultTargetType = targetTypes|first %}
+
 {% block body %}
 <section class="page-header">
     <div>
@@ -92,11 +94,38 @@
             <div class="form-row">
                 <label class="field">
                     <span>Type</span>
-                    <select name="type" required>
-                        {% for type in targetTypes %}
-                            <option value="{{ type.value }}">{{ type.value }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="icon-select" data-icon-select>
+                        <select name="type" class="icon-select__native" required>
+                            {% for type in targetTypes %}
+                                <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if defaultTargetType %}
+                            <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="icon-select__icon">
+                                    {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
+                                </span>
+                                <span class="icon-select__label">{{ target_type_label(defaultTargetType.value) }}</span>
+                                {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
+                            </button>
+                            <div class="icon-select__options" role="listbox">
+                                {% for type in targetTypes %}
+                                    <button
+                                        type="button"
+                                        class="icon-select__option"
+                                        data-value="{{ type.value }}"
+                                        role="option"
+                                        aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                    >
+                                        <span class="icon-select__icon">
+                                            {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
+                                        </span>
+                                        <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </label>
                 <label class="field">
                     <span>Target name</span>
@@ -130,12 +159,37 @@
             </label>
             <label class="field">
                 <span>Type</span>
-                <select id="target-type-filter">
-                    <option value="">All types</option>
-                    {% for type in targetTypes %}
-                        <option value="{{ type.value }}">{{ type.value }}</option>
-                    {% endfor %}
-                </select>
+                <div class="icon-select" data-icon-select>
+                    <select id="target-type-filter" class="icon-select__native">
+                        <option value="">All types</option>
+                        {% for type in targetTypes %}
+                            <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="icon-select__icon">
+                            {{ ux_icon('lucide:layers', {class: 'icon'}) }}
+                        </span>
+                        <span class="icon-select__label">All types</span>
+                        {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
+                    </button>
+                    <div class="icon-select__options" role="listbox">
+                        <button type="button" class="icon-select__option" data-value="" role="option" aria-selected="true">
+                            <span class="icon-select__icon">
+                                {{ ux_icon('lucide:layers', {class: 'icon'}) }}
+                            </span>
+                            <span class="icon-select__label">All types</span>
+                        </button>
+                        {% for type in targetTypes %}
+                            <button type="button" class="icon-select__option" data-value="{{ type.value }}" role="option">
+                                <span class="icon-select__icon">
+                                    {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
+                                </span>
+                                <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
             </label>
             <button class="button ghost" type="button" id="target-filter-reset">Reset</button>
         </div>
@@ -144,8 +198,7 @@
         <div class="table targets">
             <div class="table-row table-head">
                 <div>Image</div>
-                <div>Name</div>
-                <div>Type</div>
+                <div>Target</div>
                 <div></div>
             </div>
             {% for target in archeryGround.targetStorage %}
@@ -162,9 +215,15 @@
                             -
                         {% endif %}
                     </div>
-                    <div>{{ target.name }}</div>
-                    <div>{{ target.type.value }}</div>
-                    <div class="table-actions">
+                    <div class="target-info">
+                        <div class="target-name">
+                            <span class="type-pill type-pill--inline" title="{{ target_type_label(target.type.value) }}">
+                                {{ ux_icon(target_type_icon(target.type.value), {class: 'icon'}) }}
+                            </span>
+                            <span>{{ target.name }}</span>
+                        </div>
+                    </div>
+                    <div class="table-actions target-actions">
                         <button
                             class="icon-button js-edit-image"
                             type="button"
@@ -332,6 +391,7 @@
     const rows = Array.from(document.querySelectorAll('.target-row'));
     const countEl = document.getElementById('target-filter-count');
     const emptyEl = document.querySelector('.target-empty');
+    const iconSelects = Array.from(document.querySelectorAll('[data-icon-select]'));
 
     const dialog = document.getElementById('target-image-dialog');
     const dialogForm = document.getElementById('target-image-form');
@@ -463,6 +523,94 @@
         });
     }
 
+    const refreshIconSelect = (nativeSelect) => {
+        if (!(nativeSelect instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        const wrapper = nativeSelect.closest('[data-icon-select]');
+        if (!wrapper) {
+            return;
+        }
+
+        const trigger = wrapper.querySelector('.icon-select__trigger');
+        const triggerIcon = trigger?.querySelector('.icon-select__icon');
+        const triggerLabel = trigger?.querySelector('.icon-select__label');
+        const options = Array.from(wrapper.querySelectorAll('.icon-select__option'));
+        if (!trigger || options.length === 0) {
+            return;
+        }
+
+        const value = nativeSelect.value;
+        const match = options.find((option) => (option.dataset.value ?? '') === value) ?? options[0];
+        const optionIcon = match.querySelector('.icon-select__icon');
+        const optionLabel = match.querySelector('.icon-select__label');
+
+        if (triggerIcon && optionIcon) {
+            triggerIcon.innerHTML = optionIcon.innerHTML;
+        }
+        if (triggerLabel && optionLabel) {
+            triggerLabel.textContent = optionLabel.textContent ?? '';
+        }
+
+        options.forEach((option) => {
+            option.setAttribute('aria-selected', option === match ? 'true' : 'false');
+        });
+    };
+
+    iconSelects.forEach((wrapper) => {
+        if (!(wrapper instanceof HTMLElement)) {
+            return;
+        }
+
+        const nativeSelect = wrapper.querySelector('select');
+        const trigger = wrapper.querySelector('.icon-select__trigger');
+        const options = Array.from(wrapper.querySelectorAll('.icon-select__option'));
+
+        if (!(nativeSelect instanceof HTMLSelectElement) || !(trigger instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        const close = () => {
+            wrapper.classList.remove('is-open');
+            trigger.setAttribute('aria-expanded', 'false');
+        };
+
+        const open = () => {
+            wrapper.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+        };
+
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (wrapper.classList.contains('is-open')) {
+                close();
+            } else {
+                open();
+            }
+        });
+
+        options.forEach((option) => {
+            option.addEventListener('click', () => {
+                const value = option.dataset.value ?? '';
+                nativeSelect.value = value;
+                nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                refreshIconSelect(nativeSelect);
+                close();
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof Node) || !wrapper.contains(target)) {
+                close();
+            }
+        });
+
+        nativeSelect.addEventListener('change', () => refreshIconSelect(nativeSelect));
+        refreshIconSelect(nativeSelect);
+    });
+
     const total = rows.length;
     const update = () => {
         if (!input || !select) {
@@ -498,16 +646,17 @@
         }
     };
 
-    if (input && select && reset) {
-        input.addEventListener('input', update);
-        select.addEventListener('change', update);
-        reset.addEventListener('click', () => {
-            input.value = '';
-            select.value = '';
+        if (input && select && reset) {
+            input.addEventListener('input', update);
+            select.addEventListener('change', update);
+            reset.addEventListener('click', () => {
+                input.value = '';
+                select.value = '';
+                update();
+                refreshIconSelect(select);
+            });
             update();
-        });
-        update();
-    }
+        }
 
     const dropzone = document.querySelector('[data-dropzone]');
     if (dropzone instanceof HTMLElement) {
