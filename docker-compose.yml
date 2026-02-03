@@ -1,13 +1,39 @@
 services:
   app:
-    image: dunglas/frankenphp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: archery-tournament-app
     ports:
       - "8080:80"
     volumes:
       - ./:/app
       - ./Caddyfile:/etc/frankenphp/Caddyfile
     environment:
-      APP_ENV: dev
-      APP_DEBUG: 1
-      APP_SECRET: dev-secret-change-me
-      DATABASE_URL: "sqlite:////app/var/data.db"
+      APP_ENV: ${APP_ENV:-prod}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}?serverVersion=8.0&charset=utf8mb4"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-archery_tournament}
+      MYSQL_USER: ${MYSQL_USER:-archery}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  mysql_data:
