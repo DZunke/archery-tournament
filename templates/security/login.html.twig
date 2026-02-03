@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign In · Archery Tournament{% endblock %}
+
+{% block body %}
+
+<div class="card login-card">
+    <form method="post" class="form">
+        {% if error %}
+            <p class="form-error">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+        {% endif %}
+
+        <label class="field">
+            <span>Username</span>
+            <input type="text" name="username" value="{{ last_username }}" autocomplete="username" required autofocus>
+        </label>
+        <label class="field">
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        <button class="button" type="submit">Sign in</button>
+    </form>
+</div>
+{% endblock %}

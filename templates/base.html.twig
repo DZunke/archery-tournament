@@ -14,9 +14,15 @@
                 <div class="brand-sub">Grounds, lanes, targets</div>
             </div>
             <nav class="nav">
-                <a href="{{ path('archery_ground_index') }}">Archery Grounds</a>
-                <a href="{{ path('tournament_index') }}">Tournaments</a>
-                <a href="{{ path('archery_ground_new') }}">Create Ground</a>
+                {% if app.user %}
+                    <a href="{{ path('archery_ground_index') }}">Archery Grounds</a>
+                    <a href="{{ path('tournament_index') }}">Tournaments</a>
+                    <a href="{{ path('archery_ground_new') }}">Create Ground</a>
+                    <span class="nav-user">{{ app.user.userIdentifier }}</span>
+                    <a href="{{ path('app_logout') }}">Log out</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}">Sign in</a>
+                {% endif %}
             </nav>
         </div>
     </header>

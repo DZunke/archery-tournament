@@ -28,3 +28,7 @@ qa-static: ## Run static analysis
 qa-fix: ## Executes rector and the cs fixer
 	$(PHP) vendor/bin/rector
 	$(PHP) vendor/bin/phpcbf -n
+
+## —— Database 🗄️ ——————————————————————————————————————————————————————————————
+migrate: ## Executes database migrations
+	$(SYMFONY) app:db:migrate

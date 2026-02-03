@@ -74,6 +74,14 @@ a {
   background: var(--paper-alt);
 }
 
+.nav-user {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--paper-alt);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
 .main {
   padding: 36px 0 64px;
 }
@@ -264,6 +272,11 @@ a {
   padding: 20px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
+}
+
+.login-card {
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .tournament-grid {
