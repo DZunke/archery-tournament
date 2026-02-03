@@ -214,6 +214,8 @@ a {
   border-radius: 16px;
   padding: 0;
   width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow: hidden;
   background: #fff;
   box-shadow: 0 24px 60px rgba(23, 18, 10, 0.2);
 }
@@ -235,6 +237,8 @@ a {
   flex-direction: column;
   gap: 14px;
   padding: 20px;
+  max-height: 86vh;
+  overflow-y: auto;
 }
 
 .modal__preview {
@@ -945,6 +949,8 @@ a {
   position: relative;
   display: inline-flex;
   align-items: center;
+  cursor: zoom-in;
+  outline: none;
 }
 
 .preview-pop {
@@ -971,7 +977,8 @@ a {
   border: 1px solid var(--border);
 }
 
-.image-preview:hover .preview-pop {
+.image-preview:hover .preview-pop,
+.image-preview:focus-within .preview-pop {
   opacity: 1;
   transform: translateY(-50%) scale(1);
 }
@@ -1073,9 +1080,21 @@ a {
   }
 
   .panel-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
+  }
+
+  .panel-header h2 {
+    font-size: 1.2rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .panel-header .badge {
+    margin-left: auto;
+    white-space: nowrap;
   }
 
   .table-row {
@@ -1135,5 +1154,61 @@ a {
 
   .modal__actions .button {
     width: 100%;
+  }
+
+  .modal {
+    width: min(520px, 94vw);
+    max-height: 88vh;
+  }
+
+  .modal__body {
+    padding: 16px;
+    gap: 12px;
+    max-height: 88vh;
+  }
+
+  .modal__preview img {
+    max-height: 180px;
+  }
+
+  .preview-pop {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.98);
+    width: min(280px, 88vw);
+    max-height: 70vh;
+    padding: 8px;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .image-preview::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 16, 10, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 150;
+    transition: opacity 0.15s ease;
+  }
+
+  .preview-pop img {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+  }
+
+  .image-preview:hover .preview-pop,
+  .image-preview:focus-within .preview-pop {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .image-preview:hover::before,
+  .image-preview:focus-within::before {
+    opacity: 1;
   }
 }

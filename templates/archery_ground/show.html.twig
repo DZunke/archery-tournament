@@ -143,18 +143,16 @@
 
         <div class="table targets">
             <div class="table-row table-head">
+                <div>Image</div>
                 <div>Name</div>
                 <div>Type</div>
-                <div>Image</div>
                 <div></div>
             </div>
             {% for target in archeryGround.targetStorage %}
                 <div class="table-row target-row" data-name="{{ target.name|lower }}" data-type="{{ target.type.value }}">
-                    <div>{{ target.name }}</div>
-                    <div>{{ target.type.value }}</div>
                     <div class="image-cell">
                         {% if target.image %}
-                            <div class="image-preview">
+                            <div class="image-preview" tabindex="0" role="button" aria-label="Preview {{ target.name }}">
                                 <img src="{{ target.image }}" alt="{{ target.name }}">
                                 <div class="preview-pop">
                                     <img src="{{ target.image }}" alt="{{ target.name }} preview">
@@ -164,6 +162,8 @@
                             -
                         {% endif %}
                     </div>
+                    <div>{{ target.name }}</div>
+                    <div>{{ target.type.value }}</div>
                     <div class="table-actions">
                         <button
                             class="icon-button js-edit-image"
