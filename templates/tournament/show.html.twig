@@ -6,14 +6,32 @@
 <section class="page-header">
     <div>
         <h1>{{ tournament.name }}</h1>
-        <p class="muted">Ground: {{ archeryGround.name }} · {{ tournament.eventDate|date('Y-m-d') }}</p>
+        <div class="page-meta">
+            <span class="meta-item">
+                {{ ux_icon('lucide:map-pin', {class: 'icon'}) }}
+                <span>{{ archeryGround.name }}</span>
+            </span>
+            <span class="meta-item">
+                {{ ux_icon('lucide:calendar', {class: 'icon'}) }}
+                <span>{{ tournament.eventDate|date('Y-m-d') }}</span>
+            </span>
+        </div>
     </div>
-    <div class="inline-actions">
-        <a class="button ghost" href="{{ path('tournament_index') }}">Back</a>
-        <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
-        <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
+    <div class="inline-actions inline-actions--compact">
+        <a class="button ghost" href="{{ path('tournament_index') }}">
+            {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+            <span>Back</span>
+        </a>
+        <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">
+            {{ ux_icon('lucide:eye', {class: 'icon'}) }}
+            <span>View</span>
+        </a>
+        <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')" class="inline-actions__full">
             <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">
-            <button class="button danger" type="submit">Delete</button>
+            <button class="button danger" type="submit">
+                {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                <span>Delete</span>
+            </button>
         </form>
     </div>
 </section>
@@ -23,7 +41,7 @@
         <h2>Generator</h2>
         <span class="badge">{{ tournament.ruleset.value }}</span>
     </div>
-    <p class="muted">Auto-generated tournaments can be edited below. You can also regenerate the assignments.</p>
+    <p class="muted">Edit assignments below or regenerate them at any time.</p>
     <div class="inline-actions">
         <form method="post" action="{{ path('tournament_regenerate', {id: tournament.id}) }}" class="form form-inline">
             <input type="hidden" name="_token" value="{{ csrf_token('tournament_regenerate_' ~ tournament.id) }}">
@@ -31,11 +49,17 @@
                 <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
                 Randomize stakes between rounds
             </label>
-            <button class="button ghost" type="submit">Regenerate assignments</button>
+            <button class="button ghost" type="submit">
+                {{ ux_icon('lucide:refresh-cw', {class: 'icon'}) }}
+                <span>Regenerate assignments</span>
+            </button>
         </form>
         <form method="post" action="{{ path('tournament_validate', {id: tournament.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('tournament_validate_' ~ tournament.id) }}">
-            <button class="button" type="submit" id="validate-tournament">Validate against ruleset</button>
+            <button class="button ghost" type="submit" id="validate-tournament">
+                {{ ux_icon('lucide:check-circle', {class: 'icon'}) }}
+                <span>Validate ruleset</span>
+            </button>
             <p class="muted validation-hint" id="validate-hint" hidden>Save changes before validating.</p>
         </form>
     </div>
@@ -152,8 +176,14 @@
             {% endif %}
         </div>
         <div class="inline-actions">
-            <button class="button ghost" type="button" id="add-assignment">Add assignment</button>
-            <button class="button" type="submit">Save assignments</button>
+            <button class="button ghost" type="button" id="add-assignment">
+                {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+                <span>Add assignment</span>
+            </button>
+            <button class="button" type="submit">
+                {{ ux_icon('lucide:save', {class: 'icon'}) }}
+                <span>Save assignments</span>
+            </button>
         </div>
     </form>
 </section>

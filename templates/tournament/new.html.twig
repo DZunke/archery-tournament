@@ -9,7 +9,10 @@
         <p>Start with an automatic generation or build a tournament manually.</p>
     </div>
     <div>
-        <a class="button ghost" href="{{ path('tournament_index') }}">Back</a>
+        <a class="button ghost" href="{{ path('tournament_index') }}">
+            {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+            <span>Back</span>
+        </a>
     </div>
 </section>
 
@@ -74,7 +77,10 @@
             </label>
         </div>
 
-        <button class="button" type="submit">Create tournament</button>
+        <button class="button" type="submit">
+            {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+            <span>Create tournament</span>
+        </button>
     </form>
 </div>
 {% endblock %}

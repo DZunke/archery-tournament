@@ -23,4 +23,5 @@ ENV APP_ENV=prod \
     APP_DEBUG=0
 
 RUN mkdir -p var/cache var/log \
+    && php bin/console asset-map:compile \
     && chown -R www-data:www-data var

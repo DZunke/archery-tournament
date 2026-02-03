@@ -6,11 +6,26 @@
 <section class="page-header">
     <div>
         <h1>{{ tournament.name }}</h1>
-        <p class="muted">Ground: {{ archeryGround.name }} · {{ tournament.eventDate|date('Y-m-d') }}</p>
+        <div class="page-meta">
+            <span class="meta-item">
+                {{ ux_icon('lucide:map-pin', {class: 'icon'}) }}
+                <span>{{ archeryGround.name }}</span>
+            </span>
+            <span class="meta-item">
+                {{ ux_icon('lucide:calendar', {class: 'icon'}) }}
+                <span>{{ tournament.eventDate|date('Y-m-d') }}</span>
+            </span>
+        </div>
     </div>
-    <div class="inline-actions">
-        <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Back to edit</a>
-        <a class="button ghost" href="{{ path('tournament_index') }}">All tournaments</a>
+    <div class="inline-actions inline-actions--compact">
+        <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">
+            {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+            <span>Back to edit</span>
+        </a>
+        <a class="button ghost" href="{{ path('tournament_index') }}">
+            {{ ux_icon('lucide:list', {class: 'icon'}) }}
+            <span>All tournaments</span>
+        </a>
     </div>
 </section>
 
@@ -19,7 +34,6 @@
         <h2>Assignments · View Mode</h2>
         <span class="badge">Ordered by round & lane</span>
     </div>
-    <p class="muted">Designed for quick reading on desktop and mobile.</p>
     {% set roundCounts = {} %}
     {% for card in assignmentCards|default([]) %}
         {% set roundKey = 'round_' ~ card.round %}

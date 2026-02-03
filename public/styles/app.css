@@ -114,6 +114,32 @@ a {
   color: var(--ink-soft);
 }
 
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.page-meta .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-meta .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.meta-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -174,6 +200,10 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.inline-actions--compact {
+  align-items: center;
 }
 
 .validation-results {
@@ -1111,6 +1141,10 @@ a {
 }
 
 @media (max-width: 720px) {
+  .main {
+    padding: 28px 0 52px;
+  }
+
   .header-inner {
     flex-direction: column;
     align-items: flex-start;
@@ -1135,6 +1169,7 @@ a {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+    margin-bottom: 18px;
   }
 
   .page-header h1 {
@@ -1150,6 +1185,22 @@ a {
   .inline-actions form,
   .inline-actions form .button {
     width: 100%;
+  }
+
+  .inline-actions--compact {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .inline-actions--compact .button,
+  .inline-actions--compact a.button,
+  .inline-actions--compact form,
+  .inline-actions--compact form .button {
+    width: 100%;
+  }
+
+  .inline-actions--compact .inline-actions__full {
+    grid-column: 1 / -1;
   }
 
   .inline-form {
@@ -1342,7 +1393,8 @@ a {
   .image-preview:focus-within::before {
     opacity: 1;
   }
-}
+
   .type-pill__label {
     display: none;
   }
+}

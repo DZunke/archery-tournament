@@ -8,17 +8,28 @@
 <section class="page-header">
     <div>
         <h1>{{ archeryGround.name }}</h1>
-        <p class="muted">ID {{ archeryGround.id }}</p>
+        <div class="page-meta">
+            <span class="meta-item">
+                {{ ux_icon('lucide:hash', {class: 'icon'}) }}
+                <span>{{ archeryGround.id }}</span>
+            </span>
+        </div>
     </div>
     <div class="inline-actions">
         <form method="post" action="{{ path('archery_ground_rename', {id: archeryGround.id}) }}" class="inline-form">
             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_rename_' ~ archeryGround.id) }}">
             <input type="text" name="name" value="{{ archeryGround.name }}" aria-label="Rename archery ground">
-            <button class="button" type="submit">Rename</button>
+            <button class="button" type="submit">
+                {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
+                <span>Rename</span>
+            </button>
         </form>
         <form method="post" action="{{ path('archery_ground_delete', {id: archeryGround.id}) }}" onsubmit="return confirm('Delete this archery ground?')">
             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_' ~ archeryGround.id) }}">
-            <button class="button danger" type="submit">Delete</button>
+            <button class="button danger" type="submit">
+                {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                <span>Delete</span>
+            </button>
         </form>
     </div>
 </section>
@@ -41,7 +52,10 @@
                     <input type="number" name="max_distance" step="0.1" min="0.1" placeholder="30" required>
                 </label>
             </div>
-            <button class="button" type="submit">Add lane</button>
+            <button class="button" type="submit">
+                {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+                <span>Add lane</span>
+            </button>
         </form>
 
         <div class="table lanes">
@@ -149,7 +163,10 @@
                     </div>
                 </label>
             </div>
-            <button class="button" type="submit">Add target</button>
+            <button class="button" type="submit">
+                {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+                <span>Add target</span>
+            </button>
         </form>
 
         <div class="filter-bar" role="search" aria-label="Filter targets">
@@ -191,7 +208,10 @@
                     </div>
                 </div>
             </label>
-            <button class="button ghost" type="button" id="target-filter-reset">Reset</button>
+            <button class="button ghost" type="button" id="target-filter-reset">
+                {{ ux_icon('lucide:rotate-ccw', {class: 'icon'}) }}
+                <span>Reset</span>
+            </button>
         </div>
         <p class="filter-count" id="target-filter-count"></p>
 
@@ -264,8 +284,14 @@
     </div>
     <p class="muted">Create and manage tournaments for this archery ground. Upcoming tournaments are shown first.</p>
     <div class="inline-actions">
-        <a class="button" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id, mode: 'auto'}) }}">Auto-generate tournament</a>
-        <a class="button ghost" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id, mode: 'manual'}) }}">Manual tournament</a>
+        <a class="button" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id, mode: 'auto'}) }}">
+            {{ ux_icon('lucide:sparkles', {class: 'icon'}) }}
+            <span>Auto-generate tournament</span>
+        </a>
+        <a class="button ghost" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id, mode: 'manual'}) }}">
+            {{ ux_icon('lucide:list-plus', {class: 'icon'}) }}
+            <span>Manual tournament</span>
+        </a>
     </div>
 
     {% set today = "now"|date('Y-m-d') %}
@@ -288,8 +314,14 @@
                 <span class="status-pill {{ nextStatus }}">{{ nextStatus|capitalize }}</span>
             </div>
             <div class="next-tournament__actions">
-                <a class="button ghost" href="{{ path('tournament_show', {id: nextTournament.id}) }}">Manage</a>
-                <a class="button ghost" href="{{ path('tournament_view', {id: nextTournament.id}) }}">View mode</a>
+                <a class="button ghost" href="{{ path('tournament_show', {id: nextTournament.id}) }}">
+                    {{ ux_icon('lucide:settings', {class: 'icon'}) }}
+                    <span>Manage</span>
+                </a>
+                <a class="button ghost" href="{{ path('tournament_view', {id: nextTournament.id}) }}">
+                    {{ ux_icon('lucide:eye', {class: 'icon'}) }}
+                    <span>View</span>
+                </a>
             </div>
         </div>
     {% endif %}
@@ -328,11 +360,20 @@
                     </div>
                 </div>
                 <div class="tournament-card__actions">
-                    <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">Manage</a>
-                    <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">View mode</a>
+                    <a class="button ghost" href="{{ path('tournament_show', {id: tournament.id}) }}">
+                        {{ ux_icon('lucide:settings', {class: 'icon'}) }}
+                        <span>Manage</span>
+                    </a>
+                    <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">
+                        {{ ux_icon('lucide:eye', {class: 'icon'}) }}
+                        <span>View</span>
+                    </a>
                     <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
                         <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">
-                        <button class="button ghost danger" type="submit">Delete</button>
+                        <button class="button ghost danger" type="submit">
+                            {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                            <span>Delete</span>
+                        </button>
                     </form>
                 </div>
             </article>
@@ -340,7 +381,10 @@
             <div class="empty-state">
                 <h2>No tournaments yet</h2>
                 <p>Create your first tournament for this archery ground.</p>
-                <a class="button" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id}) }}">Create tournament</a>
+                <a class="button" href="{{ path('tournament_new', {archery_ground_id: archeryGround.id}) }}">
+                    {{ ux_icon('lucide:trophy', {class: 'icon'}) }}
+                    <span>Create tournament</span>
+                </a>
             </div>
         {% endfor %}
     </div>
@@ -634,7 +678,8 @@
         });
 
         if (countEl) {
-            if (total === 0) {
+            const hasFilter = term !== '' || type !== '';
+            if (!hasFilter || total === 0 || visible === total) {
                 countEl.textContent = '';
             } else {
                 countEl.textContent = `Showing ${visible} of ${total}`;

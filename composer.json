@@ -21,12 +21,13 @@
         "doctrine/dbal": "^4.4",
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/migrations": "^3.9",
+        "symfony/asset-mapper": "^8.0",
         "symfony/console": "^8.0",
         "symfony/debug-bundle": "^8.0",
         "symfony/dotenv": "^8.0",
         "symfony/form": "^8.0",
         "symfony/framework-bundle": "^8.0",
-        "symfony/http-client": "^8.0",
+        "symfony/http-client": "*",
         "symfony/mime": "^8.0",
         "symfony/password-hasher": "^8.0",
         "symfony/runtime": "*",
@@ -63,7 +64,8 @@
             "@auto-scripts"
         ],
         "auto-scripts": {
-            "cache:clear": "php bin/console cache:clear"
+            "cache:clear": "php bin/console cache:clear",
+            "assets:install %PUBLIC_DIR%": "php bin/console assets:install public"
         }
     }
 }

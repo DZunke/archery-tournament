@@ -9,7 +9,10 @@
         <p>Give the ground a name. You can add lanes and targets next.</p>
     </div>
     <div>
-        <a class="button ghost" href="{{ path('archery_ground_index') }}">Back</a>
+        <a class="button ghost" href="{{ path('archery_ground_index') }}">
+            {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+            <span>Back</span>
+        </a>
     </div>
 </section>
 
@@ -23,7 +26,10 @@
         {% if error %}
             <p class="form-error">{{ error }}</p>
         {% endif %}
-        <button class="button" type="submit">Create ground</button>
+        <button class="button" type="submit">
+            {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+            <span>Create ground</span>
+        </button>
     </form>
 </div>
 {% endblock %}

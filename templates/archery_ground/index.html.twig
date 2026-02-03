@@ -9,7 +9,10 @@
         <p>Create and manage shooting ranges, lanes, and target inventory.</p>
     </div>
     <div>
-        <a class="button" href="{{ path('archery_ground_new') }}">New Ground</a>
+        <a class="button" href="{{ path('archery_ground_new') }}">
+            {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+            <span>New Ground</span>
+        </a>
     </div>
 </section>
 
@@ -26,10 +29,10 @@
                 <div class="tournament-card__top">
                     <div>
                         <h2>{{ ground.name }}</h2>
-                        <p class="muted">ID {{ ground.id|slice(0, 8) }}</p>
-                    </div>
-                    <div class="tournament-card__tags">
-                        <span class="badge">Ground</span>
+                        <p class="muted meta-line">
+                            {{ ux_icon('lucide:hash', {class: 'icon'}) }}
+                            <span>{{ ground.id|slice(0, 8) }}</span>
+                        </p>
                     </div>
                 </div>
                 <div class="tournament-card__stats">
@@ -43,8 +46,14 @@
                     </div>
                 </div>
                 <div class="tournament-card__actions">
-                    <a class="button ghost" href="{{ path('archery_ground_show', {id: ground.id}) }}">Manage</a>
-                    <a class="button ghost" href="{{ path('tournament_new', {archery_ground_id: ground.id}) }}">Create tournament</a>
+                    <a class="button ghost" href="{{ path('archery_ground_show', {id: ground.id}) }}">
+                        {{ ux_icon('lucide:settings', {class: 'icon'}) }}
+                        <span>Manage</span>
+                    </a>
+                    <a class="button ghost" href="{{ path('tournament_new', {archery_ground_id: ground.id}) }}">
+                        {{ ux_icon('lucide:trophy', {class: 'icon'}) }}
+                        <span>Create tournament</span>
+                    </a>
                 </div>
             </article>
         {% endfor %}
