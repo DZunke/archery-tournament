@@ -6,6 +6,7 @@ namespace App\Application\Command\Tournament;
 
 use App\Application\Command\CommandResult;
 use App\Application\Service\TournamentGenerator\DTO\TournamentGenerationRequest;
+use App\Application\Service\TournamentGenerator\Exception\TournamentGenerationFailed;
 use App\Application\Service\TournamentGenerator\TournamentGenerationPipeline;
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Entity\Tournament;
@@ -40,15 +41,19 @@ final readonly class CreateTournamentHandler
         );
 
         if ($command->autoGenerate) {
-            $generated = $this->tournamentGenerationPipeline->generate(
-                new TournamentGenerationRequest(
-                    archeryGround: $archeryGround,
-                    ruleset: $command->ruleset,
-                    amountOfTargets: $command->numberOfTargets,
-                    randomizeStakesBetweenRounds: $command->randomizeStakesBetweenRounds,
-                ),
-            );
-            $tournament->replaceTargets($generated->targets());
+            try {
+                $generated = $this->tournamentGenerationPipeline->generate(
+                    new TournamentGenerationRequest(
+                        archeryGround: $archeryGround,
+                        ruleset: $command->ruleset,
+                        amountOfTargets: $command->numberOfTargets,
+                        randomizeStakesBetweenRounds: $command->randomizeStakesBetweenRounds,
+                    ),
+                );
+                $tournament->replaceTargets($generated->targets());
+            } catch (TournamentGenerationFailed $exception) {
+                return CommandResult::failure($exception->getMessage());
+            }
         }
 
         $this->tournamentRepository->save($tournament);
