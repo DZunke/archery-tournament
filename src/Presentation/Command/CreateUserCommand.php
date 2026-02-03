@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Presentation\Command;
 
+use App\Domain\Entity\ArcheryGround;
+use App\Domain\Entity\Tournament;
 use App\Domain\Entity\User;
 use App\Domain\Repository\ArcheryGroundRepository;
 use App\Domain\Repository\TournamentRepository;
@@ -23,8 +25,8 @@ use function array_values;
 use function implode;
 use function is_array;
 use function is_string;
-use function strtolower;
 use function sprintf;
+use function strtolower;
 use function trim;
 
 #[AsCommand(
@@ -81,7 +83,7 @@ final class CreateUserCommand extends Command
             return Command::FAILURE;
         }
 
-        $tournamentIds = $this->normalizeIds($input->getOption('tournament'));
+        $tournamentIds    = $this->normalizeIds($input->getOption('tournament'));
         $archeryGroundIds = $this->normalizeIds($input->getOption('archery-ground'));
 
         $missingTournaments = $this->findMissingTournaments($tournamentIds);
@@ -98,7 +100,7 @@ final class CreateUserCommand extends Command
             return Command::FAILURE;
         }
 
-        $hasher = $this->passwordHasherFactory->getPasswordHasher(User::class);
+        $hasher       = $this->passwordHasherFactory->getPasswordHasher(User::class);
         $passwordHash = $hasher->hash($plainPassword);
 
         $user = new User(
@@ -120,7 +122,7 @@ final class CreateUserCommand extends Command
     private function resolveUsername(InputInterface $input, SymfonyStyle $io): string|null
     {
         $usernameOption = $input->getOption('username');
-        $username = is_string($usernameOption) ? trim(strtolower($usernameOption)) : '';
+        $username       = is_string($usernameOption) ? trim(strtolower($usernameOption)) : '';
 
         if ($username === '') {
             $username = trim(strtolower((string) $io->ask('Username')));
@@ -138,7 +140,7 @@ final class CreateUserCommand extends Command
     private function resolvePassword(InputInterface $input, SymfonyStyle $io): string|null
     {
         $passwordOption = $input->getOption('password');
-        $plainPassword = is_string($passwordOption) ? $passwordOption : '';
+        $plainPassword  = is_string($passwordOption) ? $passwordOption : '';
 
         if (trim($plainPassword) === '') {
             $plainPassword = (string) $io->askHidden('Password');
@@ -166,33 +168,41 @@ final class CreateUserCommand extends Command
         ), static fn (string $id): bool => $id !== '')));
     }
 
-    /** @param list<string> $tournamentIds
-     *  @return list<string>
+    /**
+     * @param list<string> $tournamentIds
+     *
+     * @return list<string>
      */
     private function findMissingTournaments(array $tournamentIds): array
     {
         $missing = [];
 
         foreach ($tournamentIds as $tournamentId) {
-            if ($this->tournamentRepository->find($tournamentId) === null) {
-                $missing[] = $tournamentId;
+            if ($this->tournamentRepository->find($tournamentId) instanceof Tournament) {
+                continue;
             }
+
+            $missing[] = $tournamentId;
         }
 
         return $missing;
     }
 
-    /** @param list<string> $archeryGroundIds
-     *  @return list<string>
+    /**
+     * @param list<string> $archeryGroundIds
+     *
+     * @return list<string>
      */
     private function findMissingArcheryGrounds(array $archeryGroundIds): array
     {
         $missing = [];
 
         foreach ($archeryGroundIds as $archeryGroundId) {
-            if ($this->archeryGroundRepository->find($archeryGroundId) === null) {
-                $missing[] = $archeryGroundId;
+            if ($this->archeryGroundRepository->find($archeryGroundId) instanceof ArcheryGround) {
+                continue;
             }
+
+            $missing[] = $archeryGroundId;
         }
 
         return $missing;

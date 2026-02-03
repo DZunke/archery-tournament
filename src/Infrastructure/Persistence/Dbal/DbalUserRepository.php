@@ -89,16 +89,16 @@ final readonly class DbalUserRepository implements UserRepository
         return $this->hydrateUser($row);
     }
 
-    /** @param array{id: string, username: string, password: string, roles: string} $row */
+    /** @param array<string, mixed> $row */
     private function hydrateUser(array $row): User
     {
-        $userId = (string) $row['id'];
+        $userId = (string) ($row['id'] ?? '');
 
         return new User(
             id: $userId,
-            username: (string) $row['username'],
-            passwordHash: (string) $row['password'],
-            roles: $this->decodeRoles((string) $row['roles']),
+            username: (string) ($row['username'] ?? ''),
+            passwordHash: (string) ($row['password'] ?? ''),
+            roles: $this->decodeRoles((string) ($row['roles'] ?? '')),
             tournamentIds: $this->loadTournamentIds($userId),
             archeryGroundIds: $this->loadArcheryGroundIds($userId),
         );
@@ -138,10 +138,10 @@ final readonly class DbalUserRepository implements UserRepository
             [$userId],
         );
 
-        return array_values(array_map(
+        return array_map(
             static fn (array $row): string => (string) $row['tournament_id'],
             $rows,
-        ));
+        );
     }
 
     /** @return list<string> */
@@ -152,10 +152,10 @@ final readonly class DbalUserRepository implements UserRepository
             [$userId],
         );
 
-        return array_values(array_map(
+        return array_map(
             static fn (array $row): string => (string) $row['archery_ground_id'],
             $rows,
-        ));
+        );
     }
 
     /** @param list<string> $roles */
@@ -195,11 +195,15 @@ final readonly class DbalUserRepository implements UserRepository
         return $roles;
     }
 
-    /** @param list<string> $ids */
+    /**
+     * @param list<string> $ids
+     *
+     * @return list<string>
+     * */
     private function normalizeIds(array $ids): array
     {
         return array_values(array_unique(array_filter(array_map(
-            static fn (string $value): string => trim($value),
+            trim(...),
             $ids,
         ), static fn (string $value): bool => $value !== '')));
     }

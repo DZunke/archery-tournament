@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class LogoutController extends AbstractController
 {
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]
-    public function __invoke(): void
+    public function __invoke(): never
     {
         throw new LogicException('This method is intercepted by the logout firewall.');
     }

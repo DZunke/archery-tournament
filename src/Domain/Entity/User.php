@@ -22,10 +22,10 @@ final class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct(
         private readonly string $id,
         private readonly string $username,
-        private string $passwordHash,
+        private readonly string $passwordHash,
         private array $roles = ['ROLE_USER'],
-        private array $tournamentIds = [],
-        private array $archeryGroundIds = [],
+        private readonly array $tournamentIds = [],
+        private readonly array $archeryGroundIds = [],
     ) {
         Assert::uuid($this->id, 'The user id must be a valid UUID.');
         Assert::notEmpty($this->username, 'The username must not be empty.');
@@ -58,10 +58,6 @@ final class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): string
     {
         return $this->passwordHash;
-    }
-
-    public function eraseCredentials(): void
-    {
     }
 
     /** @return list<string> */

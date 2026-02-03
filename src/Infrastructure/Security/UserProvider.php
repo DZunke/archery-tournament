@@ -16,6 +16,7 @@ use function sprintf;
 use function strtolower;
 use function trim;
 
+/** @implements UserProviderInterface<User> */
 final readonly class UserProvider implements UserProviderInterface
 {
     public function __construct(private UserRepository $userRepository)
@@ -25,7 +26,7 @@ final readonly class UserProvider implements UserProviderInterface
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
         $normalizedIdentifier = strtolower(trim($identifier));
-        $user = $this->userRepository->findByUsername($normalizedIdentifier);
+        $user                 = $this->userRepository->findByUsername($normalizedIdentifier);
         if (! $user instanceof User) {
             $exception = new UserNotFoundException(sprintf('User "%s" not found.', $normalizedIdentifier));
             $exception->setUserIdentifier($normalizedIdentifier);
