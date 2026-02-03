@@ -15,12 +15,22 @@
             </div>
             <nav class="nav">
                 {% if app.user %}
-                    <a href="{{ path('archery_ground_index') }}">Archery Grounds</a>
-                    <a href="{{ path('tournament_index') }}">Tournaments</a>
-                    <a href="{{ path('archery_ground_new') }}">Create Ground</a>
-                    <a href="{{ path('app_logout') }}">Log out</a>
-                {% else %}
-                    <a href="{{ path('app_login') }}">Sign in</a>
+                    <a href="{{ path('archery_ground_index') }}">
+                        {{ ux_icon('lucide:map', {class: 'icon'}) }}
+                        <span>Archery Grounds</span>
+                    </a>
+                    <a href="{{ path('tournament_index') }}">
+                        {{ ux_icon('lucide:trophy', {class: 'icon'}) }}
+                        <span>Tournaments</span>
+                    </a>
+                    <a href="{{ path('archery_ground_new') }}">
+                        {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+                        <span>Create Ground</span>
+                    </a>
+                    <a href="{{ path('app_logout') }}">
+                        {{ ux_icon('lucide:log-out', {class: 'icon'}) }}
+                        <span>Log out</span>
+                    </a>
                 {% endif %}
             </nav>
         </div>

@@ -54,18 +54,23 @@
                     <div>{{ lane.maxDistance }} m</div>
                     <div class="table-actions">
                         <button
-                            class="link js-edit-lane"
+                            class="icon-button js-edit-lane"
                             type="button"
+                            aria-label="Edit lane {{ lane.name }}"
                             data-action="{{ path('archery_ground_update_lane', {id: archeryGround.id, laneId: lane.id}) }}"
                             data-token="{{ csrf_token('archery_ground_update_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}"
                             data-name="{{ lane.name }}"
                             data-distance="{{ lane.maxDistance }}"
                         >
-                            Edit
+                            {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
+                            <span class="sr-only">Edit</span>
                         </button>
                         <form method="post" action="{{ path('archery_ground_delete_lane', {id: archeryGround.id, laneId: lane.id}) }}" onsubmit="return confirm('Remove this lane?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}">
-                            <button class="link" type="submit">Remove</button>
+                            <button class="icon-button danger" type="submit" aria-label="Remove lane {{ lane.name }}">
+                                {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                                <span class="sr-only">Remove</span>
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -161,18 +166,23 @@
                     </div>
                     <div class="table-actions">
                         <button
-                            class="link js-edit-image"
+                            class="icon-button js-edit-image"
                             type="button"
+                            aria-label="Edit image for {{ target.name }}"
                             data-action="{{ path('archery_ground_update_target_image', {id: archeryGround.id, targetId: target.id}) }}"
                             data-token="{{ csrf_token('archery_ground_update_target_image_' ~ archeryGround.id ~ '_' ~ target.id) }}"
                             data-name="{{ target.name }}"
                             data-image="{{ target.image }}"
                         >
-                            Edit image
+                            {{ ux_icon('lucide:image', {class: 'icon'}) }}
+                            <span class="sr-only">Edit image</span>
                         </button>
                         <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_target_' ~ archeryGround.id ~ '_' ~ target.id) }}">
-                            <button class="link" type="submit">Remove</button>
+                            <button class="icon-button danger" type="submit" aria-label="Remove target {{ target.name }}">
+                                {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                                <span class="sr-only">Remove</span>
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -409,7 +419,7 @@
 
     document.addEventListener('click', (event) => {
         const target = event.target;
-        if (!(target instanceof HTMLElement)) {
+        if (!(target instanceof Element)) {
             return;
         }
 

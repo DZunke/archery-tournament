@@ -7,6 +7,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\UX\Icons\UXIconsBundle;
 
 return [
     // Backend Packages
@@ -14,6 +15,7 @@ return [
     DoctrineBundle::class => ['all' => true],
     SecurityBundle::class => ['all' => true],
     TwigBundle::class => ['all' => true],
+    UXIconsBundle::class => ['all' => true],
 
     // Development Packages
     DebugBundle::class => ['dev' => true],
