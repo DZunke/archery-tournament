@@ -75,7 +75,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
         );
 
         $targetRows = $this->connection->fetchAllAssociative(
-            'SELECT id, type, name, image FROM targets WHERE archery_ground_id = ? ORDER BY name',
+            'SELECT id, type, name, image, for_training_only, notes FROM targets WHERE archery_ground_id = ? ORDER BY name',
             [$id],
         );
 
@@ -92,7 +92,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
 
         $targets = [];
         foreach ($targetRows as $targetRow) {
-            /** @var array{id: string, type: string, name: string, image: string} $targetRow */
+            /** @var array{id: string, type: string, name: string, image: string, for_training_only: int|string|bool, notes: string} $targetRow */
             $targets[] = $this->targetHydrator->hydrate($targetRow);
         }
 
@@ -163,6 +163,8 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             'type' => $target->type()->value,
             'name' => $target->name(),
             'image' => $target->image(),
+            'for_training_only' => $target->forTrainingOnly(),
+            'notes' => $target->notes(),
         ]);
     }
 
@@ -176,20 +178,22 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
         string $targetId,
         string $name,
         string $type,
+        bool $forTrainingOnly,
+        string $notes,
         string|null $imagePath = null,
     ): void {
         if ($imagePath !== null) {
             $this->connection->executeStatement(
-                'UPDATE targets SET name = ?, type = ?, image = ? WHERE id = ? AND archery_ground_id = ?',
-                [$name, $type, $imagePath, $targetId, $archeryGroundId],
+                'UPDATE targets SET name = ?, type = ?, for_training_only = ?, notes = ?, image = ? WHERE id = ? AND archery_ground_id = ?',
+                [$name, $type, $forTrainingOnly, $notes, $imagePath, $targetId, $archeryGroundId],
             );
 
             return;
         }
 
         $this->connection->executeStatement(
-            'UPDATE targets SET name = ?, type = ? WHERE id = ? AND archery_ground_id = ?',
-            [$name, $type, $targetId, $archeryGroundId],
+            'UPDATE targets SET name = ?, type = ?, for_training_only = ?, notes = ? WHERE id = ? AND archery_ground_id = ?',
+            [$name, $type, $forTrainingOnly, $notes, $targetId, $archeryGroundId],
         );
     }
 }

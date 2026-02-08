@@ -9,7 +9,7 @@ use App\Domain\ValueObject\TargetType;
 
 final class TargetHydrator
 {
-    /** @param array{id: string, type: string, name: string, image: string} $row */
+    /** @param array{id: string, type: string, name: string, image: string, for_training_only: int|string|bool, notes: string} $row */
     public function hydrate(array $row): Target
     {
         return new Target(
@@ -17,6 +17,8 @@ final class TargetHydrator
             type: TargetType::from($row['type']),
             name: $row['name'],
             image: $row['image'],
+            forTrainingOnly: (bool) $row['for_training_only'],
+            notes: $row['notes'],
         );
     }
 }

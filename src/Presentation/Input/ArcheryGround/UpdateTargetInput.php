@@ -18,6 +18,8 @@ final readonly class UpdateTargetInput
         public string $type,
         public string $name,
         public UploadedFile|null $image,
+        public bool $forTrainingOnly,
+        public string $notes,
     ) {
     }
 
@@ -27,6 +29,8 @@ final readonly class UpdateTargetInput
             (string) $request->request->get('type', ''),
             (string) $request->request->get('name', ''),
             $request->files->get('image'),
+            $request->request->getBoolean('for_training_only'),
+            (string) $request->request->get('notes', ''),
         );
     }
 
@@ -63,6 +67,8 @@ final readonly class UpdateTargetInput
             targetId: $targetId,
             name: trim($this->name),
             type: $type,
+            forTrainingOnly: $this->forTrainingOnly,
+            notes: $this->notes,
             image: $this->image,
         );
     }

@@ -191,7 +191,7 @@
                 <div></div>
             </div>
             {% for target in archeryGround.targetStorage %}
-                <div class="table-row target-row" data-name="{{ target.name|lower }}" data-type="{{ target.type.value }}">
+                <div class="table-row target-row" data-name="{{ target.name|lower }}" data-type="{{ target.type.value }}" data-training="{{ target.forTrainingOnly ? 'training' : 'competition' }}">
                     <div class="image-cell">
                         {% if target.image %}
                             <div class="image-preview" tabindex="0" role="button" aria-label="Preview {{ target.name }}">
@@ -210,6 +210,12 @@
                                 {{ ux_icon(target_type_icon(target.type.value), {class: 'icon'}) }}
                             </span>
                             <span>{{ target.name }}</span>
+                            {% if target.forTrainingOnly %}
+                                <span class="lane-badge" title="For training purposes only">{{ ux_icon('lucide:graduation-cap', {class: 'icon icon-sm'}) }}</span>
+                            {% endif %}
+                            {% if target.notes %}
+                                <span class="lane-badge" title="{{ target.notes }}">{{ ux_icon('lucide:message-square-text', {class: 'icon icon-sm'}) }}</span>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="table-actions target-actions">
@@ -222,6 +228,8 @@
                             data-name="{{ target.name }}"
                             data-type="{{ target.type.value }}"
                             data-image="{{ target.image }}"
+                            data-for-training-only="{{ target.forTrainingOnly ? '1' : '0' }}"
+                            data-notes="{{ target.notes }}"
                         >
                             {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
                             <span class="sr-only">Edit</span>
@@ -447,6 +455,14 @@
                 </div>
             </div>
         </label>
+        <label class="field checkbox">
+            <input type="checkbox" name="for_training_only" id="target-add-for-training-only">
+            <span>For training purposes only</span>
+        </label>
+        <label class="field">
+            <span>Notes</span>
+            <textarea name="notes" id="target-add-notes" rows="3" placeholder="Optional notes about this target"></textarea>
+        </label>
         <div class="modal__actions">
             <button class="button ghost" type="button" data-target-add-close>Cancel</button>
             <button class="button" type="submit">Add target</button>
@@ -506,6 +522,14 @@
             </div>
             <input type="file" name="image" id="target-edit-image" accept="image/*">
         </label>
+        <label class="field checkbox">
+            <input type="checkbox" name="for_training_only" id="target-edit-for-training-only">
+            <span>For training purposes only</span>
+        </label>
+        <label class="field">
+            <span>Notes</span>
+            <textarea name="notes" id="target-edit-notes" rows="3" placeholder="Optional notes about this target"></textarea>
+        </label>
         <div class="modal__actions">
             <button class="button ghost" type="button" data-target-edit-close>Cancel</button>
             <button class="button" type="submit">Save changes</button>
@@ -542,6 +566,8 @@
     const dialogPreview = document.getElementById('target-edit-preview');
     const dialogPreviewWrap = document.getElementById('target-edit-preview-wrap');
     const dialogImageInput = document.getElementById('target-edit-image');
+    const dialogTrainingInput = document.getElementById('target-edit-for-training-only');
+    const dialogNotesInput = document.getElementById('target-edit-notes');
     const dialogClose = document.querySelector('[data-target-edit-close]');
     const laneDialog = document.getElementById('lane-dialog');
     const laneForm = document.getElementById('lane-form');
@@ -559,6 +585,8 @@
     const targetAddForm = document.getElementById('target-add-form');
     const targetAddToken = document.getElementById('target-add-token');
     const targetAddName = document.getElementById('target-add-name');
+    const targetAddTrainingInput = document.getElementById('target-add-for-training-only');
+    const targetAddNotesInput = document.getElementById('target-add-notes');
     const targetAddClose = document.querySelector('[data-target-add-close]');
 
     const openDialog = (button) => {
@@ -606,6 +634,14 @@
         // Reset file input
         if (dialogImageInput) {
             dialogImageInput.value = '';
+        }
+
+        // Set training checkbox and notes
+        if (dialogTrainingInput) {
+            dialogTrainingInput.checked = button.dataset.forTrainingOnly === '1';
+        }
+        if (dialogNotesInput) {
+            dialogNotesInput.value = button.dataset.notes || '';
         }
 
         if (typeof dialog.showModal === 'function') {
@@ -687,6 +723,14 @@
 
         if (targetAddName) {
             targetAddName.value = '';
+        }
+
+        // Reset training checkbox and notes
+        if (targetAddTrainingInput) {
+            targetAddTrainingInput.checked = false;
+        }
+        if (targetAddNotesInput) {
+            targetAddNotesInput.value = '';
         }
 
         const modalDropzone = targetAddDialog.querySelector('[data-dropzone-modal]');

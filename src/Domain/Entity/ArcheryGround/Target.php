@@ -14,6 +14,8 @@ final class Target
         private readonly TargetType $type,
         private readonly string $name,
         private readonly string $image,
+        private readonly bool $forTrainingOnly = false,
+        private readonly string $notes = '',
     ) {
         Assert::uuid($this->id, 'The target id must be a valid UUID.');
         Assert::notEmpty($this->name, 'The target name must not be empty.');
@@ -37,5 +39,15 @@ final class Target
     public function image(): string
     {
         return $this->image;
+    }
+
+    public function forTrainingOnly(): bool
+    {
+        return $this->forTrainingOnly;
+    }
+
+    public function notes(): string
+    {
+        return $this->notes;
     }
 }

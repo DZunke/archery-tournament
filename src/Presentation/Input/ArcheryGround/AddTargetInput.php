@@ -18,6 +18,8 @@ final readonly class AddTargetInput
         public string $type,
         public string $name,
         public UploadedFile|null $image,
+        public bool $forTrainingOnly,
+        public string $notes,
     ) {
     }
 
@@ -27,6 +29,8 @@ final readonly class AddTargetInput
             (string) $request->request->get('type', ''),
             (string) $request->request->get('name', ''),
             $request->files->get('image'),
+            $request->request->getBoolean('for_training_only'),
+            (string) $request->request->get('notes', ''),
         );
     }
 
@@ -68,6 +72,8 @@ final readonly class AddTargetInput
             $type,
             trim($this->name),
             $this->image,
+            $this->forTrainingOnly,
+            $this->notes,
         );
     }
 }

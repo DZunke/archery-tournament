@@ -46,6 +46,8 @@ interface ArcheryGroundRepository
         string $targetId,
         string $name,
         string $type,
+        bool $forTrainingOnly,
+        string $notes,
         string|null $imagePath = null,
     ): void;
 }

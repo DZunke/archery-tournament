@@ -14,6 +14,8 @@ final readonly class UpdateTarget
         public string $targetId,
         public string $name,
         public TargetType $type,
+        public bool $forTrainingOnly = false,
+        public string $notes = '',
         public UploadedFile|null $image = null,
     ) {
     }

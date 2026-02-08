@@ -118,6 +118,8 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
         string $targetId,
         string $name,
         string $type,
+        bool $forTrainingOnly,
+        string $notes,
         string|null $imagePath = null,
     ): void {
         $this->updatedTargets[] = [
@@ -125,6 +127,8 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
             'targetId' => $targetId,
             'name' => $name,
             'type' => $type,
+            'forTrainingOnly' => $forTrainingOnly,
+            'notes' => $notes,
             'imagePath' => $imagePath,
         ];
     }

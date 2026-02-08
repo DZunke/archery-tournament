@@ -33,6 +33,8 @@ final readonly class AddTargetHandler
             type: $command->type,
             name: $command->name,
             image: $imagePath,
+            forTrainingOnly: $command->forTrainingOnly,
+            notes: $command->notes,
         );
 
         $this->archeryGroundRepository->addTarget($command->archeryGroundId, $target);

@@ -14,6 +14,8 @@ final readonly class AddTarget
         public TargetType $type,
         public string $name,
         public UploadedFile $image,
+        public bool $forTrainingOnly = false,
+        public string $notes = '',
     ) {
     }
 }

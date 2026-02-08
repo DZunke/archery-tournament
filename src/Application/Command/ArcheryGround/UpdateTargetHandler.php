@@ -49,6 +49,8 @@ final readonly class UpdateTargetHandler
             $command->targetId,
             $command->name,
             $command->type->value,
+            $command->forTrainingOnly,
+            $command->notes,
             $newImagePath,
         );
 
