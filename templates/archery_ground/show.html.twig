@@ -80,7 +80,7 @@
                 {% set laneInUse = laneUsages|length > 0 %}
                 <div class="table-row lane-row" data-name="{{ lane.name|lower }}" data-training="{{ lane.forTrainingOnly ? 'training' : 'competition' }}">
                     <div class="lane-name">
-                        <span>{{ lane.name }}</span>
+                        <span class="card-label">{{ lane.name }}</span>
                         {% if lane.forTrainingOnly %}
                             <span class="lane-badge" title="For training purposes only">{{ ux_icon('lucide:graduation-cap', {class: 'icon icon-sm'}) }}</span>
                         {% endif %}
@@ -234,7 +234,7 @@
                             <span class="type-pill type-pill--inline" title="{{ target_type_label(target.type.value) }}">
                                 {{ ux_icon(target_type_icon(target.type.value), {class: 'icon'}) }}
                             </span>
-                            <span>{{ target.name }}</span>
+                            <span class="card-label">{{ target.name }}</span>
                             {% if target.forTrainingOnly %}
                                 <span class="lane-badge" title="For training purposes only">{{ ux_icon('lucide:graduation-cap', {class: 'icon icon-sm'}) }}</span>
                             {% endif %}

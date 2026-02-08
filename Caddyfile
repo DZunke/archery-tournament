@@ -6,6 +6,12 @@
 :80 {
     root * /app/public
     encode zstd br gzip
+
+    @static {
+        path *.css *.js *.svg *.png *.jpg *.jpeg *.gif *.webp *.woff2 *.woff
+    }
+    header @static Cache-Control "no-cache, must-revalidate"
+
     php_server
     file_server
 }
