@@ -181,16 +181,17 @@
                     </div>
                     <div class="table-actions target-actions">
                         <button
-                            class="icon-button js-edit-image"
+                            class="icon-button js-edit-target"
                             type="button"
-                            aria-label="Edit image for {{ target.name }}"
-                            data-action="{{ path('archery_ground_update_target_image', {id: archeryGround.id, targetId: target.id}) }}"
-                            data-token="{{ csrf_token('archery_ground_update_target_image_' ~ archeryGround.id ~ '_' ~ target.id) }}"
+                            aria-label="Edit target {{ target.name }}"
+                            data-action="{{ path('archery_ground_update_target', {id: archeryGround.id, targetId: target.id}) }}"
+                            data-token="{{ csrf_token('archery_ground_update_target_' ~ archeryGround.id ~ '_' ~ target.id) }}"
                             data-name="{{ target.name }}"
+                            data-type="{{ target.type.value }}"
                             data-image="{{ target.image }}"
                         >
-                            {{ ux_icon('lucide:image', {class: 'icon'}) }}
-                            <span class="sr-only">Edit image</span>
+                            {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
+                            <span class="sr-only">Edit</span>
                         </button>
                         <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_target_' ~ archeryGround.id ~ '_' ~ target.id) }}">
@@ -412,21 +413,61 @@
     </form>
 </dialog>
 
-<dialog id="target-image-dialog" class="modal">
-    <form method="post" enctype="multipart/form-data" id="target-image-form" class="modal__body">
-        <input type="hidden" name="_token" id="target-image-token">
-        <h3>Update image for <span id="target-image-name"></span></h3>
-        <p class="muted">Upload a new image to replace the existing target photo.</p>
-        <div class="modal__preview" id="target-image-preview-wrap" hidden>
-            <img id="target-image-preview" alt="">
-        </div>
+<dialog id="target-edit-dialog" class="modal">
+    <form method="post" enctype="multipart/form-data" id="target-edit-form" class="modal__body">
+        <input type="hidden" name="_token" id="target-edit-token">
+        <h3>Edit target <span id="target-edit-title"></span></h3>
         <label class="field">
-            <span>New image</span>
-            <input type="file" name="image" accept="image/*" required>
+            <span>Type</span>
+            <div class="icon-select" data-icon-select>
+                <select name="type" id="target-edit-type" class="icon-select__native" required>
+                    {% for type in targetTypes %}
+                        <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
+                    {% endfor %}
+                </select>
+                {% if defaultTargetType %}
+                    <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" id="target-edit-type-trigger">
+                        <span class="icon-select__icon" id="target-edit-type-icon">
+                            {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
+                        </span>
+                        <span class="icon-select__label" id="target-edit-type-label">{{ target_type_label(defaultTargetType.value) }}</span>
+                        {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
+                    </button>
+                    <div class="icon-select__options" role="listbox">
+                        {% for type in targetTypes %}
+                            <button
+                                type="button"
+                                class="icon-select__option"
+                                data-value="{{ type.value }}"
+                                data-icon="{{ target_type_icon(type.value) }}"
+                                data-label="{{ target_type_label(type.value) }}"
+                                role="option"
+                                aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                            >
+                                <span class="icon-select__icon">
+                                    {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
+                                </span>
+                                <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </label>
+        <label class="field">
+            <span>Target name</span>
+            <input type="text" name="name" id="target-edit-name" placeholder="Deer" required>
+        </label>
+        <label class="field">
+            <span>Target image <span class="muted">(optional, leave empty to keep current)</span></span>
+            <div class="modal__preview" id="target-edit-preview-wrap" hidden>
+                <img id="target-edit-preview" alt="">
+            </div>
+            <input type="file" name="image" id="target-edit-image" accept="image/*">
         </label>
         <div class="modal__actions">
-            <button class="button ghost" type="button" data-dialog-close>Cancel</button>
-            <button class="button" type="submit">Update image</button>
+            <button class="button ghost" type="button" data-target-edit-close>Cancel</button>
+            <button class="button" type="submit">Save changes</button>
         </div>
     </form>
 </dialog>
@@ -440,13 +481,19 @@
     const emptyEl = document.querySelector('.target-empty');
     const iconSelects = Array.from(document.querySelectorAll('[data-icon-select]'));
 
-    const dialog = document.getElementById('target-image-dialog');
-    const dialogForm = document.getElementById('target-image-form');
-    const dialogToken = document.getElementById('target-image-token');
-    const dialogName = document.getElementById('target-image-name');
-    const dialogPreview = document.getElementById('target-image-preview');
-    const dialogPreviewWrap = document.getElementById('target-image-preview-wrap');
-    const dialogClose = document.querySelector('[data-dialog-close]');
+    const dialog = document.getElementById('target-edit-dialog');
+    const dialogForm = document.getElementById('target-edit-form');
+    const dialogToken = document.getElementById('target-edit-token');
+    const dialogTitle = document.getElementById('target-edit-title');
+    const dialogName = document.getElementById('target-edit-name');
+    const dialogType = document.getElementById('target-edit-type');
+    const dialogTypeTrigger = document.getElementById('target-edit-type-trigger');
+    const dialogTypeIcon = document.getElementById('target-edit-type-icon');
+    const dialogTypeLabel = document.getElementById('target-edit-type-label');
+    const dialogPreview = document.getElementById('target-edit-preview');
+    const dialogPreviewWrap = document.getElementById('target-edit-preview-wrap');
+    const dialogImageInput = document.getElementById('target-edit-image');
+    const dialogClose = document.querySelector('[data-target-edit-close]');
     const laneDialog = document.getElementById('lane-dialog');
     const laneForm = document.getElementById('lane-form');
     const laneToken = document.getElementById('lane-token');
@@ -464,13 +511,36 @@
     const targetAddClose = document.querySelector('[data-target-add-close]');
 
     const openDialog = (button) => {
-        if (!dialog || !dialogForm || !dialogToken || !dialogName) {
+        if (!dialog || !dialogForm || !dialogToken || !dialogTitle || !dialogName || !dialogType) {
             return;
         }
 
         dialogForm.setAttribute('action', button.dataset.action || '');
         dialogToken.value = button.dataset.token || '';
-        dialogName.textContent = button.dataset.name || 'Target';
+        dialogTitle.textContent = button.dataset.name || 'Target';
+        dialogName.value = button.dataset.name || '';
+        dialogType.value = button.dataset.type || '';
+
+        // Update the icon-select visual state to match the current type
+        const currentType = button.dataset.type || '';
+        if (dialogTypeTrigger && dialogTypeIcon && dialogTypeLabel) {
+            const optionsContainer = dialog.querySelector('.icon-select__options');
+            if (optionsContainer) {
+                const options = optionsContainer.querySelectorAll('.icon-select__option');
+                options.forEach(opt => {
+                    const isSelected = opt.dataset.value === currentType;
+                    opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    if (isSelected) {
+                        dialogTypeLabel.textContent = opt.dataset.label || '';
+                        // Copy the icon HTML from the option
+                        const iconEl = opt.querySelector('.icon-select__icon');
+                        if (iconEl) {
+                            dialogTypeIcon.innerHTML = iconEl.innerHTML;
+                        }
+                    }
+                });
+            }
+        }
 
         if (dialogPreview && dialogPreviewWrap) {
             if (button.dataset.image) {
@@ -480,6 +550,11 @@
                 dialogPreview.src = '';
                 dialogPreviewWrap.hidden = true;
             }
+        }
+
+        // Reset file input
+        if (dialogImageInput) {
+            dialogImageInput.value = '';
         }
 
         if (typeof dialog.showModal === 'function') {
@@ -625,7 +700,7 @@
             return;
         }
 
-        const button = target.closest('.js-edit-image');
+        const button = target.closest('.js-edit-target');
         if (!button || !(button instanceof HTMLElement)) {
             return;
         }
@@ -666,6 +741,18 @@
         targetAddDialog.addEventListener('click', (event) => {
             if (event.target === targetAddDialog) {
                 closeTargetAddDialog();
+            }
+        });
+    }
+
+    // Handle file input change for edit dialog preview
+    if (dialogImageInput && dialogPreview && dialogPreviewWrap) {
+        dialogImageInput.addEventListener('change', () => {
+            const file = dialogImageInput.files && dialogImageInput.files[0];
+            if (file) {
+                dialogPreview.src = URL.createObjectURL(file);
+                dialogPreview.onload = () => URL.revokeObjectURL(dialogPreview.src);
+                dialogPreviewWrap.hidden = false;
             }
         });
     }

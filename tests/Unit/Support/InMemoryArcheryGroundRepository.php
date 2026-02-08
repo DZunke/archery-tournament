@@ -35,8 +35,8 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
     /** @var list<string> */
     public array $removedTargets = [];
 
-    /** @var list<array{targetId: string, imagePath: string}> */
-    public array $updatedTargetImages = [];
+    /** @var list<array{archeryGroundId: string, targetId: string, name: string, type: string, imagePath: string|null}> */
+    public array $updatedTargets = [];
 
     /** @var list<string> */
     public array $deleted = [];
@@ -109,10 +109,18 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
         $this->removedTargets[] = $targetId;
     }
 
-    public function updateTargetImage(string $targetId, string $imagePath): void
-    {
-        $this->updatedTargetImages[] = [
+    public function updateTarget(
+        string $archeryGroundId,
+        string $targetId,
+        string $name,
+        string $type,
+        string|null $imagePath = null,
+    ): void {
+        $this->updatedTargets[] = [
+            'archeryGroundId' => $archeryGroundId,
             'targetId' => $targetId,
+            'name' => $name,
+            'type' => $type,
             'imagePath' => $imagePath,
         ];
     }

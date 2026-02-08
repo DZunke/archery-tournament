@@ -5,29 +5,29 @@ declare(strict_types=1);
 namespace App\Presentation\Controller\ArcheryGround;
 
 use App\Application\Bus\CommandBus;
-use App\Presentation\Input\ArcheryGround\UpdateTargetImageInput;
+use App\Presentation\Input\ArcheryGround\UpdateTargetInput;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class UpdateTargetImageController extends AbstractController
+final class UpdateTargetController extends AbstractController
 {
     public function __construct(private readonly CommandBus $commandBus)
     {
     }
 
-    #[Route('/archery-grounds/{id}/targets/{targetId}/image', name: 'archery_ground_update_target_image', methods: ['POST'])]
+    #[Route('/archery-grounds/{id}/targets/{targetId}', name: 'archery_ground_update_target', methods: ['POST'])]
     public function __invoke(Request $request, string $id, string $targetId): Response
     {
         $token = (string) $request->request->get('_token');
-        if (! $this->isCsrfTokenValid('archery_ground_update_target_image_' . $id . '_' . $targetId, $token)) {
+        if (! $this->isCsrfTokenValid('archery_ground_update_target_' . $id . '_' . $targetId, $token)) {
             $this->addFlash('error', 'Invalid CSRF token.');
 
             return $this->redirectToRoute('archery_ground_show', ['id' => $id]);
         }
 
-        $input  = UpdateTargetImageInput::fromRequest($request);
+        $input  = UpdateTargetInput::fromRequest($request);
         $errors = $input->errors();
         if ($errors !== []) {
             foreach ($errors as $error) {
