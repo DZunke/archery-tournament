@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Twig;
 
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -23,11 +24,12 @@ final class TargetTypeExtension extends AbstractExtension
         'animal_group_4' => 'ph:number-four-fill',
     ];
 
+    #[Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('target_type_label', [$this, 'label']),
-            new TwigFunction('target_type_icon', [$this, 'icon']),
+            new TwigFunction('target_type_label', $this->label(...)),
+            new TwigFunction('target_type_icon', $this->icon(...)),
         ];
     }
 
