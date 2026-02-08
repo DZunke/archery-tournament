@@ -35,7 +35,7 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
     /** @var list<string> */
     public array $removedTargets = [];
 
-    /** @var list<array{archeryGroundId: string, targetId: string, name: string, type: string, imagePath: string|null}> */
+    /** @var list<array{archeryGroundId: string, targetId: string, name: string, type: string, forTrainingOnly: bool, notes: string, imagePath: string|null, targetZoneSize: int|null}> */
     public array $updatedTargets = [];
 
     /** @var list<string> */
@@ -121,6 +121,7 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
         bool $forTrainingOnly,
         string $notes,
         string|null $imagePath = null,
+        int|null $targetZoneSize = null,
     ): void {
         $this->updatedTargets[] = [
             'archeryGroundId' => $archeryGroundId,
@@ -130,6 +131,7 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
             'forTrainingOnly' => $forTrainingOnly,
             'notes' => $notes,
             'imagePath' => $imagePath,
+            'targetZoneSize' => $targetZoneSize,
         ];
     }
 

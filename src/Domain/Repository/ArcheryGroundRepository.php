@@ -49,5 +49,6 @@ interface ArcheryGroundRepository
         bool $forTrainingOnly,
         string $notes,
         string|null $imagePath = null,
+        int|null $targetZoneSize = null,
     ): void;
 }

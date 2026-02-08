@@ -238,6 +238,7 @@
                             data-image="{{ target.image }}"
                             data-for-training-only="{{ target.forTrainingOnly ? '1' : '0' }}"
                             data-notes="{{ target.notes }}"
+                            data-target-zone-size="{{ target.targetZoneSize }}"
                         >
                             {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
                             <span class="sr-only">Edit</span>
@@ -407,41 +408,53 @@
     <form method="post" enctype="multipart/form-data" id="target-add-form" class="modal__body">
         <input type="hidden" name="_token" id="target-add-token">
         <h3>Add target</h3>
-        <label class="field">
-            <span>Type</span>
-            <div class="icon-select" data-icon-select>
-                <select name="type" id="target-add-type" class="icon-select__native" required>
-                    {% for type in targetTypes %}
-                        <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
-                    {% endfor %}
-                </select>
-                {% if defaultTargetType %}
-                    <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-                        <span class="icon-select__icon">
-                            {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
-                        </span>
-                        <span class="icon-select__label">{{ target_type_label(defaultTargetType.value) }}</span>
-                        {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
-                    </button>
-                    <div class="icon-select__options" role="listbox">
+        <fieldset class="field-group">
+            <legend>Target Classification</legend>
+            <label class="field">
+                <span>Zone size <span class="muted">(mm, optional)</span></span>
+                <input type="number" name="target_zone_size" id="target-add-zone-size" min="1" placeholder="e.g., 200">
+                <small class="field-hint">When provided, the type is auto-selected based on the ruleset.</small>
+                <span class="field-error" id="target-add-zone-size-error"></span>
+            </label>
+            <label class="field">
+                <span>Type</span>
+                <div class="icon-select" data-icon-select>
+                    <select name="type" id="target-add-type" class="icon-select__native" required>
                         {% for type in targetTypes %}
-                            <button
-                                type="button"
-                                class="icon-select__option"
-                                data-value="{{ type.value }}"
-                                role="option"
-                                aria-selected="{{ loop.first ? 'true' : 'false' }}"
-                            >
-                                <span class="icon-select__icon">
-                                    {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
-                                </span>
-                                <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
-                            </button>
+                            <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
                         {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </label>
+                    </select>
+                    {% if defaultTargetType %}
+                        <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="icon-select__icon">
+                                {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
+                            </span>
+                            <span class="icon-select__label">{{ target_type_label(defaultTargetType.value) }}</span>
+                            {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
+                        </button>
+                        <div class="icon-select__options" role="listbox">
+                            {% for type in targetTypes %}
+                                <button
+                                    type="button"
+                                    class="icon-select__option"
+                                    data-value="{{ type.value }}"
+                                    data-icon="{{ target_type_icon(type.value) }}"
+                                    data-label="{{ target_type_label(type.value) }}"
+                                    role="option"
+                                    aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                >
+                                    <span class="icon-select__icon">
+                                        {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
+                                    </span>
+                                    <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <span class="field-error" id="target-add-type-error"></span>
+            </label>
+        </fieldset>
         <label class="field">
             <span>Target name</span>
             <input type="text" name="name" id="target-add-name" placeholder="Deer" required>
@@ -482,43 +495,53 @@
     <form method="post" enctype="multipart/form-data" id="target-edit-form" class="modal__body">
         <input type="hidden" name="_token" id="target-edit-token">
         <h3>Edit target <span id="target-edit-title"></span></h3>
-        <label class="field">
-            <span>Type</span>
-            <div class="icon-select" data-icon-select>
-                <select name="type" id="target-edit-type" class="icon-select__native" required>
-                    {% for type in targetTypes %}
-                        <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
-                    {% endfor %}
-                </select>
-                {% if defaultTargetType %}
-                    <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" id="target-edit-type-trigger">
-                        <span class="icon-select__icon" id="target-edit-type-icon">
-                            {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
-                        </span>
-                        <span class="icon-select__label" id="target-edit-type-label">{{ target_type_label(defaultTargetType.value) }}</span>
-                        {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
-                    </button>
-                    <div class="icon-select__options" role="listbox">
+        <fieldset class="field-group">
+            <legend>Target Classification</legend>
+            <label class="field">
+                <span>Zone size <span class="muted">(mm, optional)</span></span>
+                <input type="number" name="target_zone_size" id="target-edit-zone-size" min="1" placeholder="e.g., 200">
+                <small class="field-hint">When provided, the type is auto-selected based on the ruleset.</small>
+                <span class="field-error" id="target-edit-zone-size-error"></span>
+            </label>
+            <label class="field">
+                <span>Type</span>
+                <div class="icon-select" data-icon-select>
+                    <select name="type" id="target-edit-type" class="icon-select__native" required>
                         {% for type in targetTypes %}
-                            <button
-                                type="button"
-                                class="icon-select__option"
-                                data-value="{{ type.value }}"
-                                data-icon="{{ target_type_icon(type.value) }}"
-                                data-label="{{ target_type_label(type.value) }}"
-                                role="option"
-                                aria-selected="{{ loop.first ? 'true' : 'false' }}"
-                            >
-                                <span class="icon-select__icon">
-                                    {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
-                                </span>
-                                <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
-                            </button>
+                            <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
                         {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </label>
+                    </select>
+                    {% if defaultTargetType %}
+                        <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" id="target-edit-type-trigger">
+                            <span class="icon-select__icon" id="target-edit-type-icon">
+                                {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
+                            </span>
+                            <span class="icon-select__label" id="target-edit-type-label">{{ target_type_label(defaultTargetType.value) }}</span>
+                            {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
+                        </button>
+                        <div class="icon-select__options" role="listbox">
+                            {% for type in targetTypes %}
+                                <button
+                                    type="button"
+                                    class="icon-select__option"
+                                    data-value="{{ type.value }}"
+                                    data-icon="{{ target_type_icon(type.value) }}"
+                                    data-label="{{ target_type_label(type.value) }}"
+                                    role="option"
+                                    aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                >
+                                    <span class="icon-select__icon">
+                                        {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
+                                    </span>
+                                    <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <span class="field-error" id="target-edit-type-error"></span>
+            </label>
+        </fieldset>
         <label class="field">
             <span>Target name</span>
             <input type="text" name="name" id="target-edit-name" placeholder="Deer" required>
@@ -576,6 +599,7 @@
     const dialogImageInput = document.getElementById('target-edit-image');
     const dialogTrainingInput = document.getElementById('target-edit-for-training-only');
     const dialogNotesInput = document.getElementById('target-edit-notes');
+    const dialogZoneSizeInput = document.getElementById('target-edit-zone-size');
     const dialogClose = document.querySelector('[data-target-edit-close]');
     const laneDialog = document.getElementById('lane-dialog');
     const laneForm = document.getElementById('lane-form');
@@ -595,7 +619,179 @@
     const targetAddName = document.getElementById('target-add-name');
     const targetAddTrainingInput = document.getElementById('target-add-for-training-only');
     const targetAddNotesInput = document.getElementById('target-add-notes');
+    const targetAddZoneSizeInput = document.getElementById('target-add-zone-size');
+    const targetAddType = document.getElementById('target-add-type');
     const targetAddClose = document.querySelector('[data-target-add-close]');
+
+    // Zone size to target type conversion
+    // Group 1: > 250mm, Group 2: 201-250mm, Group 3: 150-200mm, Group 4: < 150mm
+    const typeLabels = {
+        'animal_group_1': 'Group 1',
+        'animal_group_2': 'Group 2',
+        'animal_group_3': 'Group 3',
+        'animal_group_4': 'Group 4'
+    };
+
+    const typeRanges = {
+        'animal_group_1': '> 250mm',
+        'animal_group_2': '201-250mm',
+        'animal_group_3': '150-200mm',
+        'animal_group_4': '< 150mm'
+    };
+
+    const getTypeFromZoneSize = (zoneSizeInMm) => {
+        if (zoneSizeInMm > 250) return 'animal_group_1';
+        if (zoneSizeInMm >= 201) return 'animal_group_2';
+        if (zoneSizeInMm >= 150) return 'animal_group_3';
+        return 'animal_group_4';
+    };
+
+    const getTypeLabel = (typeValue) => typeLabels[typeValue] || typeValue;
+    const getTypeRange = (typeValue) => typeRanges[typeValue] || '';
+
+    const updateTypeFromZoneSize = (zoneSizeInput, typeSelect, selectContainer) => {
+        const zoneSize = parseInt(zoneSizeInput.value, 10);
+        if (isNaN(zoneSize) || zoneSize <= 0) {
+            return;
+        }
+
+        const derivedType = getTypeFromZoneSize(zoneSize);
+        typeSelect.value = derivedType;
+
+        // Update the icon-select visual state
+        if (selectContainer) {
+            const trigger = selectContainer.querySelector('.icon-select__trigger');
+            const iconEl = selectContainer.querySelector('.icon-select__icon');
+            const labelEl = selectContainer.querySelector('.icon-select__label');
+            const optionsContainer = selectContainer.querySelector('.icon-select__options');
+
+            if (trigger && iconEl && labelEl && optionsContainer) {
+                const options = optionsContainer.querySelectorAll('.icon-select__option');
+                options.forEach(opt => {
+                    const isSelected = opt.dataset.value === derivedType;
+                    opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    if (isSelected) {
+                        labelEl.textContent = opt.dataset.label || '';
+                        const optIconEl = opt.querySelector('.icon-select__icon');
+                        if (optIconEl) {
+                            iconEl.innerHTML = optIconEl.innerHTML;
+                        }
+                    }
+                });
+            }
+        }
+    };
+
+    // Event listeners for zone size changes
+    if (targetAddZoneSizeInput && targetAddType) {
+        const addDialogSelectContainer = targetAddDialog ? targetAddDialog.querySelector('[data-icon-select]') : null;
+        targetAddZoneSizeInput.addEventListener('input', () => {
+            updateTypeFromZoneSize(targetAddZoneSizeInput, targetAddType, addDialogSelectContainer);
+        });
+    }
+
+    if (dialogZoneSizeInput && dialogType) {
+        const editDialogSelectContainer = dialog ? dialog.querySelector('[data-icon-select]') : null;
+        dialogZoneSizeInput.addEventListener('input', () => {
+            updateTypeFromZoneSize(dialogZoneSizeInput, dialogType, editDialogSelectContainer);
+            clearFieldError(dialogZoneSizeInput, 'target-edit-zone-size-error');
+        });
+    }
+
+    // Validation helper functions
+    const showFieldError = (input, errorId, message) => {
+        const errorEl = document.getElementById(errorId);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.add('is-visible');
+        }
+        if (input) {
+            input.classList.add('is-invalid');
+        }
+    };
+
+    const clearFieldError = (input, errorId) => {
+        const errorEl = document.getElementById(errorId);
+        if (errorEl) {
+            errorEl.textContent = '';
+            errorEl.classList.remove('is-visible');
+        }
+        if (input) {
+            input.classList.remove('is-invalid');
+        }
+    };
+
+    const validateZoneSizeAndType = (zoneSizeInput, typeInput, zoneSizeErrorId, typeErrorId) => {
+        let isValid = true;
+
+        // Clear previous errors
+        clearFieldError(zoneSizeInput, zoneSizeErrorId);
+        clearFieldError(typeInput, typeErrorId);
+
+        const zoneSizeValue = zoneSizeInput ? zoneSizeInput.value.trim() : '';
+
+        if (zoneSizeValue !== '') {
+            const zoneSize = parseInt(zoneSizeValue, 10);
+
+            if (isNaN(zoneSize) || zoneSize <= 0) {
+                showFieldError(zoneSizeInput, zoneSizeErrorId, 'Zone size must be a positive number');
+                isValid = false;
+            } else {
+                const derivedType = getTypeFromZoneSize(zoneSize);
+                const selectedType = typeInput ? typeInput.value : '';
+
+                if (selectedType !== derivedType) {
+                    const derivedLabel = getTypeLabel(derivedType);
+                    const derivedRange = getTypeRange(derivedType);
+                    const message = `Zone size ${zoneSize}mm matches ${derivedLabel} (${derivedRange})`;
+                    showFieldError(typeInput, typeErrorId, message);
+                    isValid = false;
+                }
+            }
+        }
+
+        return isValid;
+    };
+
+    // Form validation on submit - Add Target Dialog
+    if (targetAddForm) {
+        targetAddForm.addEventListener('submit', (event) => {
+            const isValid = validateZoneSizeAndType(
+                targetAddZoneSizeInput,
+                targetAddType,
+                'target-add-zone-size-error',
+                'target-add-type-error'
+            );
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    }
+
+    // Form validation on submit - Edit Target Dialog
+    if (dialogForm) {
+        dialogForm.addEventListener('submit', (event) => {
+            const isValid = validateZoneSizeAndType(
+                dialogZoneSizeInput,
+                dialogType,
+                'target-edit-zone-size-error',
+                'target-edit-type-error'
+            );
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    }
+
+    // Clear errors on zone size input change for Add dialog
+    if (targetAddZoneSizeInput) {
+        targetAddZoneSizeInput.addEventListener('input', () => {
+            clearFieldError(targetAddZoneSizeInput, 'target-add-zone-size-error');
+            clearFieldError(targetAddType, 'target-add-type-error');
+        });
+    }
 
     const openDialog = (button) => {
         if (!dialog || !dialogForm || !dialogToken || !dialogTitle || !dialogName || !dialogType) {
@@ -650,6 +846,12 @@
         }
         if (dialogNotesInput) {
             dialogNotesInput.value = button.dataset.notes || '';
+        }
+
+        // Set zone size
+        if (dialogZoneSizeInput) {
+            const zoneSize = button.dataset.targetZoneSize;
+            dialogZoneSizeInput.value = zoneSize && zoneSize !== '' ? zoneSize : '';
         }
 
         if (typeof dialog.showModal === 'function') {
@@ -739,6 +941,11 @@
         }
         if (targetAddNotesInput) {
             targetAddNotesInput.value = '';
+        }
+
+        // Reset zone size
+        if (targetAddZoneSizeInput) {
+            targetAddZoneSizeInput.value = '';
         }
 
         const modalDropzone = targetAddDialog.querySelector('[data-dropzone-modal]');

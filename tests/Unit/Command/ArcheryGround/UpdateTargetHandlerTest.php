@@ -59,6 +59,41 @@ final class UpdateTargetHandlerTest extends TestCase
         self::assertSame($targetId, $repository->updatedTargets[0]['targetId']);
         self::assertSame('Updated Deer', $repository->updatedTargets[0]['name']);
         self::assertSame('animal_group_2', $repository->updatedTargets[0]['type']);
+        self::assertNull($repository->updatedTargets[0]['targetZoneSize']);
+    }
+
+    #[Test]
+    public function updatesTargetWithZoneSize(): void
+    {
+        $repository = new InMemoryArcheryGroundRepository();
+        $storage    = new SpyTargetImageStorage();
+        $handler    = new UpdateTargetHandler($repository, $storage);
+
+        $groundId = Uuid::v4()->toRfc4122();
+        $targetId = Uuid::v4()->toRfc4122();
+
+        $ground = new ArcheryGround($groundId, 'Test Ground');
+        $ground->addTarget(new Target(
+            id: $targetId,
+            type: TargetType::ANIMAL_GROUP_1,
+            name: 'Deer',
+            image: '/uploads/targets/existing-image.png',
+        ));
+        $repository->seed($ground);
+
+        $result = $handler(new UpdateTarget(
+            archeryGroundId: $groundId,
+            targetId: $targetId,
+            name: 'Updated Deer',
+            type: TargetType::ANIMAL_GROUP_1, // Will be overridden by zone size
+            targetZoneSize: 175, // This should derive ANIMAL_GROUP_3
+        ));
+
+        self::assertTrue($result->success);
+        self::assertCount(1, $repository->updatedTargets);
+        self::assertSame('Updated Deer', $repository->updatedTargets[0]['name']);
+        self::assertSame('animal_group_3', $repository->updatedTargets[0]['type']);
+        self::assertSame(175, $repository->updatedTargets[0]['targetZoneSize']);
     }
 
     #[Test]
@@ -95,6 +130,7 @@ final class UpdateTargetHandlerTest extends TestCase
         self::assertSame('Renamed Deer', $repository->updatedTargets[0]['name']);
         self::assertSame('animal_group_3', $repository->updatedTargets[0]['type']);
         self::assertNull($repository->updatedTargets[0]['imagePath']);
+        self::assertNull($repository->updatedTargets[0]['targetZoneSize']);
     }
 
     #[Test]

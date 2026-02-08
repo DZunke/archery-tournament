@@ -52,6 +52,7 @@ final readonly class UpdateTargetHandler
             $command->forTrainingOnly,
             $command->notes,
             $newImagePath,
+            $command->targetZoneSize,
         );
 
         if ($newImagePath !== null && $existingImage !== null && $existingImage !== $newImagePath) {

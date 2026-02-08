@@ -6,10 +6,12 @@ namespace App\Presentation\Input\ArcheryGround;
 
 use App\Application\Command\ArcheryGround\UpdateTarget;
 use App\Domain\ValueObject\TargetType;
+use App\Domain\ValueObject\TargetZoneSizeConverter;
 use LogicException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
+use function is_numeric;
 use function trim;
 
 final readonly class UpdateTargetInput
@@ -20,6 +22,7 @@ final readonly class UpdateTargetInput
         public UploadedFile|null $image,
         public bool $forTrainingOnly,
         public string $notes,
+        public string $targetZoneSize,
     ) {
     }
 
@@ -31,20 +34,44 @@ final readonly class UpdateTargetInput
             $request->files->get('image'),
             $request->request->getBoolean('for_training_only'),
             (string) $request->request->get('notes', ''),
+            (string) $request->request->get('target_zone_size', ''),
         );
     }
 
     /** @return list<string> */
     public function errors(): array
     {
-        $errors = [];
+        $errors      = [];
+        $hasZoneSize = trim($this->targetZoneSize) !== '';
+        $zoneSizeInt = null;
 
         if (trim($this->name) === '') {
             $errors[] = 'Target name is required.';
         }
 
-        if (TargetType::tryFrom($this->type) === null) {
-            $errors[] = 'Target type is invalid.';
+        if ($hasZoneSize) {
+            if (! is_numeric($this->targetZoneSize)) {
+                $errors[] = 'Target zone size must be a number.';
+            } else {
+                $zoneSizeInt = (int) $this->targetZoneSize;
+                if ($zoneSizeInt <= 0) {
+                    $errors[] = 'Target zone size must be greater than 0.';
+                }
+            }
+        } else {
+            // When no zone size, type must be manually selected
+            if (TargetType::tryFrom($this->type) === null) {
+                $errors[] = 'Target type is required when no zone size is provided.';
+            }
+        }
+
+        // When zone size is provided, validate the type matches
+        if ($hasZoneSize && $zoneSizeInt !== null && $zoneSizeInt > 0) {
+            $derivedType  = TargetZoneSizeConverter::toTargetType($zoneSizeInt);
+            $selectedType = TargetType::tryFrom($this->type);
+            if ($selectedType !== null && $selectedType !== $derivedType) {
+                $errors[] = 'Target type does not match the zone size. Expected ' . $derivedType->value . '.';
+            }
         }
 
         // Image is optional for updates - only validate if provided
@@ -57,7 +84,14 @@ final readonly class UpdateTargetInput
 
     public function toCommand(string $archeryGroundId, string $targetId): UpdateTarget
     {
-        $type = TargetType::tryFrom($this->type);
+        $hasZoneSize = trim($this->targetZoneSize) !== '';
+        $zoneSizeInt = $hasZoneSize ? (int) $this->targetZoneSize : null;
+
+        // When zone size is provided, derive the type from it
+        $type = $hasZoneSize && $zoneSizeInt !== null
+            ? TargetZoneSizeConverter::toTargetType($zoneSizeInt)
+            : TargetType::tryFrom($this->type);
+
         if (! $type instanceof TargetType) {
             throw new LogicException('Target type must be validated before building the command.');
         }
@@ -70,6 +104,7 @@ final readonly class UpdateTargetInput
             forTrainingOnly: $this->forTrainingOnly,
             notes: $this->notes,
             image: $this->image,
+            targetZoneSize: $zoneSizeInt,
         );
     }
 }

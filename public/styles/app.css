@@ -666,6 +666,45 @@ a {
   color: var(--ink);
 }
 
+.field-group {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0;
+  background: var(--paper-alt);
+}
+
+.field-group legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0 8px;
+}
+
+.field-group .field {
+  margin-bottom: 12px;
+}
+
+.field-group .field:last-child {
+  margin-bottom: 0;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: none;
+}
+
+.field-error.is-visible {
+  display: block;
+}
+
+.field input.is-invalid,
+.field select.is-invalid {
+  border-color: var(--danger);
+}
+
 .icon-select {
   position: relative;
 }

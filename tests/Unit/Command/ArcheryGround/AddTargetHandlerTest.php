@@ -48,6 +48,39 @@ final class AddTargetHandlerTest extends TestCase
         self::assertSame('Deer', $addedTarget->name());
         self::assertSame(TargetType::ANIMAL_GROUP_1, $addedTarget->type());
         self::assertSame($storage->stored[0]['path'], $addedTarget->image());
+        self::assertNull($addedTarget->targetZoneSize());
+
+        if (! is_file($file->getPathname())) {
+            return;
+        }
+
+        unlink($file->getPathname());
+    }
+
+    public function testAddsTargetWithZoneSize(): void
+    {
+        $repository = new InMemoryArcheryGroundRepository();
+        $storage    = new SpyTargetImageStorage();
+        $handler    = new AddTargetHandler($repository, $storage);
+
+        $file    = $this->createUploadedImage();
+        $command = new AddTarget(
+            archeryGroundId: 'ground-id',
+            type: TargetType::ANIMAL_GROUP_1, // This will be overridden by zone size
+            name: 'Boar',
+            image: $file,
+            targetZoneSize: 220, // This should derive ANIMAL_GROUP_2
+        );
+
+        $result = $handler($command);
+
+        self::assertTrue($result->success);
+        self::assertCount(1, $repository->addedTargets);
+
+        $addedTarget = $repository->addedTargets[0]['target'];
+        self::assertSame('Boar', $addedTarget->name());
+        self::assertSame(TargetType::ANIMAL_GROUP_2, $addedTarget->type());
+        self::assertSame(220, $addedTarget->targetZoneSize());
 
         if (! is_file($file->getPathname())) {
             return;
