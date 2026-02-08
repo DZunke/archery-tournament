@@ -1,6 +1,6 @@
 {#
     Reusable attachment section component.
-    
+
     Usage:
         {% include 'components/_attachment_section.html.twig' with {
             attachments: entity.attachments,
@@ -11,7 +11,7 @@
             csrf_delete_prefix: 'tournament_delete_attachment_',
             description: 'Upload PDF documents or images related to this tournament.'
         } %}
-    
+
     Parameters:
         - attachments: list of attachment objects with id, title, filePath, originalFilename, isImage, isPdf methods
         - add_route: route name for adding attachments

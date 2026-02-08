@@ -1,14 +1,14 @@
 {#
     Reusable attachment add dialog component.
-    
+
     Usage:
         {% include 'components/_attachment_dialog.html.twig' with {
             dialog_id: 'attachment-add-dialog'
         } %}
-    
+
     Parameters:
         - dialog_id: unique ID for the dialog element (default: 'attachment-add-dialog')
-    
+
     Note: The dialog form action and token are set dynamically via JavaScript
     when the "Add attachment" button is clicked. The button should have:
         - data-action: the form action URL
