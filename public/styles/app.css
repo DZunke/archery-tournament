@@ -961,10 +961,11 @@ a {
 .assignment-card__media img {
   width: 100%;
   height: 220px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 16px;
   border: 1px solid var(--border);
   display: block;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .image-placeholder {
