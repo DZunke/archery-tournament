@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ tournament.name }} · Print</title>
+    <title>{{ tournament.name|replace({' ': '_'}) }}_{{ tournament.eventDate|date('Y-m-d') }}_Tournament_Assignments</title>
     <link rel="stylesheet" href="/styles/app.css">
     <style>
         @media screen {
@@ -43,6 +43,10 @@
         }
 
         @media print {
+            @page {
+                margin-bottom: 50px;
+            }
+
             .print-banner {
                 display: none !important;
             }
@@ -57,18 +61,19 @@
                 padding: 0 !important;
             }
 
-            .round-section {
-                page-break-inside: avoid;
-                break-inside: avoid;
+            .round-section__header {
+                page-break-after: avoid;
+                break-after: avoid;
             }
 
-            .assignment-card {
+            .print-card {
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
 
             .print-header {
-                margin-bottom: 16px;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
             }
 
             .print-footer {

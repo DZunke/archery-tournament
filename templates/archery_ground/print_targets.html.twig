@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ archeryGround.name }} · Targets · Print</title>
+    <title>{{ archeryGround.name|replace({' ': '_'}) }}_{{ 'now'|date('Y-m-d') }}_Targets</title>
     <link rel="stylesheet" href="/styles/app.css">
     <style>
         @media screen {
@@ -43,6 +43,10 @@
         }
 
         @media print {
+            @page {
+                margin-bottom: 50px;
+            }
+
             .print-banner {
                 display: none !important;
             }
