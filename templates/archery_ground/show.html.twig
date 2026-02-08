@@ -37,8 +37,7 @@
 <div class="split">
     <section class="panel">
         <div class="panel-header">
-            <h2>Lanes</h2>
-            <span class="badge">{{ archeryGround.shootingLanes|length }}</span>
+            <h2>Lanes <span class="badge">{{ archeryGround.shootingLanes|length }}</span></h2>
             <button
                 class="button js-add-lane"
                 type="button"
@@ -139,8 +138,7 @@
 
     <section class="panel">
         <div class="panel-header">
-            <h2>Targets</h2>
-            <span class="badge">{{ archeryGround.targetStorage|length }}</span>
+            <h2>Targets <span class="badge">{{ archeryGround.targetStorage|length }}</span></h2>
             <button
                 class="button js-add-target"
                 type="button"
@@ -150,6 +148,9 @@
                 {{ ux_icon('lucide:plus', {class: 'icon'}) }}
                 <span>Add target</span>
             </button>
+            <a href="{{ path('archery_ground_print_targets', {id: archeryGround.id}) }}" class="button ghost" target="_blank" aria-label="Print targets">
+                {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+            </a>
         </div>
 
         <div class="filter-bar" role="search" aria-label="Filter targets">
@@ -337,6 +338,10 @@
                     {{ ux_icon('lucide:eye', {class: 'icon'}) }}
                     <span>View</span>
                 </a>
+                <a class="button ghost" href="{{ path('tournament_print', {id: nextTournament.id}) }}">
+                    {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+                    <span>Print</span>
+                </a>
             </div>
         </div>
     {% endif %}
@@ -382,6 +387,10 @@
                     <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}">
                         {{ ux_icon('lucide:eye', {class: 'icon'}) }}
                         <span>View</span>
+                    </a>
+                    <a class="button ghost" href="{{ path('tournament_print', {id: tournament.id}) }}">
+                        {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+                        <span>Print</span>
                     </a>
                     <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
                         <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">

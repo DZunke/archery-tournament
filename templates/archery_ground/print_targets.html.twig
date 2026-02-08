@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ archeryGround.name }} · Targets · Print</title>
+    <link rel="stylesheet" href="/styles/app.css">
+    <style>
+        @media screen {
+            .print-banner {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 12px 24px;
+                background: var(--ink);
+                color: #fff;
+            }
+
+            .print-banner__info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 0.9rem;
+            }
+
+            .print-banner .button {
+                background: #fff;
+                color: var(--ink);
+            }
+
+            .print-banner .button:hover {
+                background: var(--paper-alt);
+            }
+
+            .print-actions {
+                display: flex;
+                gap: 10px;
+            }
+        }
+
+        @media print {
+            .print-banner {
+                display: none !important;
+            }
+
+            body {
+                background: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-page {
+                padding: 0 !important;
+            }
+
+            .targets-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 12px !important;
+            }
+
+            .target-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                padding: 12px !important;
+            }
+
+            .target-card__image {
+                max-height: 180px !important;
+            }
+
+            .target-card__image img {
+                max-height: 180px !important;
+            }
+
+            .print-header {
+                margin-bottom: 16px;
+            }
+
+            .print-footer {
+                display: block !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 0.75rem;
+                color: var(--ink-soft);
+                border-top: 1px solid var(--border);
+                padding-top: 8px;
+            }
+        }
+
+        .print-page {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .print-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .print-header h1 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+        }
+
+        .print-header__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.9rem;
+            color: var(--ink-soft);
+        }
+
+        .print-header__meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .print-header__stats {
+            text-align: right;
+            font-size: 0.9rem;
+            color: var(--ink-soft);
+        }
+
+        .print-header__stats strong {
+            display: block;
+            font-size: 1.4rem;
+            color: var(--ink);
+        }
+
+        .targets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .target-card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .target-card__image {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+        }
+
+        .target-card__image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .target-card__image .image-placeholder {
+            color: var(--ink-soft);
+            font-size: 0.85rem;
+        }
+
+        .target-card__header {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .target-card__type {
+            flex-shrink: 0;
+        }
+
+        .type-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--border);
+        }
+
+        .type-pill .icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .target-card__content {
+            flex: 1;
+        }
+
+        .target-card__name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .target-card__badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .target-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--ink-soft);
+        }
+
+        .target-badge .icon {
+            width: 12px;
+            height: 12px;
+        }
+
+        .target-card__notes {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .print-footer {
+            display: none;
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+        }
+    </style>
+</head>
+<body>
+    <div class="print-banner">
+        <div class="print-banner__info">
+            {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+            <span>Print preview for {{ archeryGround.name }} targets</span>
+        </div>
+        <div class="print-actions">
+            <a href="{{ path('archery_ground_show', {id: archeryGround.id}) }}" class="button">
+                {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+                <span>Back</span>
+            </a>
+            <button class="button" type="button" onclick="window.print()">
+                {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+                <span>Print</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="print-page">
+        <div class="print-header">
+            <div>
+                <h1>{{ archeryGround.name }}</h1>
+                <div class="print-header__meta">
+                    <span>
+                        {{ ux_icon('lucide:target', {class: 'icon'}) }}
+                        Targets
+                    </span>
+                </div>
+            </div>
+            <div class="print-header__stats">
+                <div>Total</div>
+                <strong>{{ archeryGround.targetStorage|length }}</strong>
+            </div>
+        </div>
+
+        {% if archeryGround.targetStorage|length > 0 %}
+            <div class="targets-grid">
+                {% for target in archeryGround.targetStorage %}
+                    <div class="target-card">
+                        <div class="target-card__image">
+                            {% if target.image %}
+                                <img src="{{ target.image }}" alt="{{ target.name }}">
+                            {% else %}
+                                <div class="image-placeholder">
+                                    {{ ux_icon('lucide:image-off', {class: 'icon'}) }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="target-card__header">
+                            <div class="target-card__type">
+                                <span class="type-pill" title="{{ target_type_label(target.type.value) }}">
+                                    {{ ux_icon(target_type_icon(target.type.value), {class: 'icon'}) }}
+                                </span>
+                            </div>
+                            <div class="target-card__content">
+                                <div class="target-card__name">
+                                    {{ target.name }}
+                                    {% if target.forTrainingOnly %}
+                                        <span class="target-badge">{{ ux_icon('lucide:graduation-cap', {class: 'icon'}) }}</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--ink-soft);">
+                                    {{ target_type_label(target.type.value) }}
+                                    {% if target.targetZoneSize %}
+                                        · {{ target.targetZoneSize }} mm
+                                    {% endif %}
+                                </div>
+                                {% if target.notes %}
+                                    <div class="target-card__notes">{{ target.notes }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; color: var(--ink-soft); padding: 32px;">
+                No targets available.
+            </p>
+        {% endif %}
+
+        <div class="print-footer">
+            Generated {{ 'now'|date('Y-m-d H:i') }}
+        </div>
+    </div>
+</body>
+</html>
