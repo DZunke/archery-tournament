@@ -39,6 +39,19 @@ final readonly class CollectQualifiedLanes implements TournamentGenerationStep
             throw NotEnoughLanesAtShootingRange::noLanesAtShootingRange();
         }
 
+        // Filter out training-only lanes unless explicitly included
+        if (! $tournamentResult->includeTrainingOnly) {
+            $availableShootingLanes = array_filter(
+                $availableShootingLanes,
+                static fn ($lane) => ! $lane->forTrainingOnly(),
+            );
+
+            $this->logger->debug(
+                'Excluded training-only lanes from selection.',
+                ['remaining_lanes' => count($availableShootingLanes)],
+            );
+        }
+
         $minTournamentRequiredRange = $tournamentResult->ruleset->getOverallMinStakeDistance();
         $this->logger->debug(
             'Minimum required stake distance for tournament is ' . $minTournamentRequiredRange . ' meters.',

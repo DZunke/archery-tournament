@@ -33,6 +33,7 @@ final readonly class RegenerateTournamentHandler
                     ruleset: $tournament->ruleset(),
                     amountOfTargets: $tournament->numberOfTargets(),
                     randomizeStakesBetweenRounds: $command->randomizeStakesBetweenRounds,
+                    includeTrainingOnly: $command->includeTrainingOnly,
                 ),
             );
         } catch (TournamentGenerationFailed $exception) {

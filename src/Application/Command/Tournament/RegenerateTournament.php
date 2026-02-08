@@ -9,6 +9,7 @@ final readonly class RegenerateTournament
     public function __construct(
         public string $tournamentId,
         public bool $randomizeStakesBetweenRounds,
+        public bool $includeTrainingOnly = false,
     ) {
     }
 }

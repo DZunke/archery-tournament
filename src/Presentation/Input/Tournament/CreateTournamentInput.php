@@ -23,6 +23,7 @@ final readonly class CreateTournamentInput
         public string $numberOfTargets,
         public string $mode,
         public bool $randomizeStakesBetweenRounds,
+        public bool $includeTrainingOnly,
     ) {
     }
 
@@ -36,6 +37,7 @@ final readonly class CreateTournamentInput
             (string) $request->request->get('number_of_targets', ''),
             (string) $request->request->get('mode', 'auto'),
             $request->request->getBoolean('randomize_stakes_between_rounds'),
+            $request->request->getBoolean('include_training_only'),
         );
     }
 
@@ -86,6 +88,7 @@ final readonly class CreateTournamentInput
             numberOfTargets: (int) $this->numberOfTargets,
             autoGenerate: $this->mode === 'auto',
             randomizeStakesBetweenRounds: $this->randomizeStakesBetweenRounds,
+            includeTrainingOnly: $this->includeTrainingOnly,
         );
     }
 }

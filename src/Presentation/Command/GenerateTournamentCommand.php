@@ -46,6 +46,12 @@ final class GenerateTournamentCommand
             description: 'Randomize stake distances between rounds while keeping targets fixed.',
         )]
         bool $randomizeStakesBetweenRounds = false,
+        #[Option(
+            name: 'include-training',
+            shortcut: 't',
+            description: 'Include training-only lanes and targets in generation.',
+        )]
+        bool $includeTrainingOnly = false,
     ): int {
         $io->title('Generate Tournament Command');
 
@@ -63,9 +69,15 @@ final class GenerateTournamentCommand
         $ruleset = Ruleset::from('DSB_3D');
 
         $table = new Table($io);
-        $table->setHeaders(['Archery Ground', 'Number of Targets', 'Ruleset', 'Randomize Stakes']);
+        $table->setHeaders(['Archery Ground', 'Number of Targets', 'Ruleset', 'Randomize Stakes', 'Include Training']);
         $table->setRows([
-            [$archeryGround->name(), $amountOfTargets, $ruleset->value, $randomizeStakesBetweenRounds ? 'yes' : 'no'],
+            [
+                $archeryGround->name(),
+                $amountOfTargets,
+                $ruleset->value,
+                $randomizeStakesBetweenRounds ? 'yes' : 'no',
+                $includeTrainingOnly ? 'yes' : 'no',
+            ],
         ]);
         $table->render();
 
@@ -76,6 +88,7 @@ final class GenerateTournamentCommand
                     ruleset: $ruleset,
                     amountOfTargets: $amountOfTargets,
                     randomizeStakesBetweenRounds: $randomizeStakesBetweenRounds,
+                    includeTrainingOnly: $includeTrainingOnly,
                 ),
             );
         } catch (TournamentGenerationFailed $exception) {

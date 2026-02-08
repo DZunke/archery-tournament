@@ -14,6 +14,7 @@ final readonly class TournamentGenerationRequest
         public Ruleset $ruleset,
         public int $amountOfTargets,
         public bool $randomizeStakesBetweenRounds = false,
+        public bool $includeTrainingOnly = false,
     ) {
     }
 }

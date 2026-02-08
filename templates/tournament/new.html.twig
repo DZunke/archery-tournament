@@ -68,13 +68,17 @@
                     </label>
                 </div>
             </label>
-            <label class="field">
-                <span>Randomize stakes between rounds</span>
+            <div class="field">
+                <span>Generation options</span>
                 <label class="choice">
                     <input type="checkbox" name="randomize_stakes_between_rounds" value="1">
-                    Enable random stake distances for each round
+                    Randomize stake distances for each round
                 </label>
-            </label>
+                <label class="choice">
+                    <input type="checkbox" name="include_training_only" value="1">
+                    Include training-only lanes and targets
+                </label>
+            </div>
         </div>
 
         <button class="button" type="submit">

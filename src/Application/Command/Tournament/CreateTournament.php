@@ -17,6 +17,7 @@ final readonly class CreateTournament
         public int $numberOfTargets,
         public bool $autoGenerate,
         public bool $randomizeStakesBetweenRounds,
+        public bool $includeTrainingOnly = false,
     ) {
     }
 }

@@ -20,6 +20,7 @@ use App\Domain\ValueObject\Ruleset;
 use App\Domain\ValueObject\TargetType;
 use App\Tests\Fixtures\AcheryGroundMediumSized;
 use App\Tests\Fixtures\ArcheryGroundSmallSized;
+use App\Tests\Fixtures\ArcheryGroundWithTrainingOnly;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\Uid\Uuid;
@@ -349,5 +350,103 @@ final class TournamentGenerationPipelineTest extends TestCase
 
             $lanesPerRound[$round][$laneId] = true;
         }
+    }
+
+    public function testExcludesTrainingOnlyLanesByDefault(): void
+    {
+        $archeryGround = ArcheryGroundWithTrainingOnly::create();
+
+        $request = new TournamentGenerationRequest(
+            archeryGround: $archeryGround,
+            ruleset: Ruleset::FREEHAND,
+            amountOfTargets: 4,
+        );
+
+        $tournament = $this->pipeline->generate($request);
+
+        foreach ($tournament->targets() as $tournamentTarget) {
+            self::assertFalse(
+                $tournamentTarget->shootingLane()->forTrainingOnly(),
+                'Tournament should not include training-only lanes by default',
+            );
+        }
+    }
+
+    public function testExcludesTrainingOnlyTargetsByDefault(): void
+    {
+        $archeryGround = ArcheryGroundWithTrainingOnly::create();
+
+        $request = new TournamentGenerationRequest(
+            archeryGround: $archeryGround,
+            ruleset: Ruleset::FREEHAND,
+            amountOfTargets: 4,
+        );
+
+        $tournament = $this->pipeline->generate($request);
+
+        foreach ($tournament->targets() as $tournamentTarget) {
+            self::assertFalse(
+                $tournamentTarget->target()->forTrainingOnly(),
+                'Tournament should not include training-only targets by default',
+            );
+        }
+    }
+
+    public function testIncludesTrainingOnlyLanesWhenFlagEnabled(): void
+    {
+        $archeryGround = ArcheryGroundWithTrainingOnly::create();
+
+        $request = new TournamentGenerationRequest(
+            archeryGround: $archeryGround,
+            ruleset: Ruleset::FREEHAND,
+            amountOfTargets: 6,
+            includeTrainingOnly: true,
+        );
+
+        $tournament = $this->pipeline->generate($request);
+
+        $trainingLanesUsed = 0;
+        foreach ($tournament->targets() as $tournamentTarget) {
+            if (! $tournamentTarget->shootingLane()->forTrainingOnly()) {
+                continue;
+            }
+
+            $trainingLanesUsed++;
+        }
+
+        self::assertGreaterThan(
+            0,
+            $trainingLanesUsed,
+            'When includeTrainingOnly is enabled, training lanes should be used',
+        );
+    }
+
+    public function testIncludesTrainingOnlyTargetsWhenFlagEnabled(): void
+    {
+        $archeryGround = ArcheryGroundWithTrainingOnly::create();
+
+        $request = new TournamentGenerationRequest(
+            archeryGround: $archeryGround,
+            ruleset: Ruleset::FREEHAND,
+            amountOfTargets: 6,
+            includeTrainingOnly: true,
+        );
+
+        $tournament = $this->pipeline->generate($request);
+
+        $trainingTargetsUsed = 0;
+        foreach ($tournament->targets() as $tournamentTarget) {
+            if (! $tournamentTarget->target()->forTrainingOnly()) {
+                continue;
+            }
+
+            $trainingTargetsUsed++;
+        }
+
+        self::assertGreaterThan(
+            0,
+            $trainingTargetsUsed,
+            'When includeTrainingOnly is enabled, training targets should be used',
+        );
     }
 }

@@ -14,9 +14,11 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
 use function array_fill_keys;
+use function array_filter;
 use function array_map;
 use function array_slice;
 use function array_splice;
+use function array_values;
 use function ceil;
 use function count;
 use function min;
@@ -102,6 +104,14 @@ final readonly class PlaceTargetTypes implements TournamentGenerationStep
     {
         $availableLanes   = $tournamentResult->availableLanes;
         $availableTargets = $tournamentResult->archeryGround->targetStorage();
+
+        // Filter out training-only targets unless explicitly included
+        if (! $tournamentResult->includeTrainingOnly) {
+            $availableTargets = array_values(array_filter(
+                $availableTargets,
+                static fn (Target $target) => ! $target->forTrainingOnly(),
+            ));
+        }
 
         if (count($availableTargets) === 0) {
             throw new TournamentGenerationFailed('No targets are available for freehand tournament generation.');

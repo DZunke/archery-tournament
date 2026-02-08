@@ -177,6 +177,14 @@
                     </div>
                 </div>
             </label>
+            <label class="field">
+                <span>Usage</span>
+                <select id="target-usage-filter">
+                    <option value="">All targets</option>
+                    <option value="competition">Competition</option>
+                    <option value="training">Training only</option>
+                </select>
+            </label>
             <button class="button ghost" type="button" id="target-filter-reset">
                 {{ ux_icon('lucide:rotate-ccw', {class: 'icon'}) }}
                 <span>Reset</span>
@@ -1028,6 +1036,7 @@
     });
 
     const total = rows.length;
+    const usageSelect = document.getElementById('target-usage-filter');
     const update = () => {
         if (!input || !select) {
             return;
@@ -1035,14 +1044,17 @@
 
         const term = input.value.trim().toLowerCase();
         const type = select.value;
+        const usage = usageSelect ? usageSelect.value : '';
         let visible = 0;
 
         rows.forEach((row) => {
             const name = row.dataset.name || '';
             const rowType = row.dataset.type || '';
+            const rowTraining = row.dataset.training || '';
             const matchesName = term === '' || name.includes(term);
             const matchesType = type === '' || rowType === type;
-            const show = matchesName && matchesType;
+            const matchesUsage = usage === '' || rowTraining === usage;
+            const show = matchesName && matchesType && matchesUsage;
             row.style.display = show ? '' : 'none';
             if (show) {
                 visible += 1;
@@ -1050,7 +1062,7 @@
         });
 
         if (countEl) {
-            const hasFilter = term !== '' || type !== '';
+            const hasFilter = term !== '' || type !== '' || usage !== '';
             if (!hasFilter || total === 0 || visible === total) {
                 countEl.textContent = '';
             } else {
@@ -1066,9 +1078,15 @@
         if (input && select && reset) {
             input.addEventListener('input', update);
             select.addEventListener('change', update);
+            if (usageSelect) {
+                usageSelect.addEventListener('change', update);
+            }
             reset.addEventListener('click', () => {
                 input.value = '';
                 select.value = '';
+                if (usageSelect) {
+                    usageSelect.value = '';
+                }
                 update();
                 refreshIconSelect(select);
             });

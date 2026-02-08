@@ -21,6 +21,24 @@ The output is a `Tournament` populated with `TournamentTarget` entries, each con
 - target
 - stake distances (per stake color)
 
+## Training-Only Resources
+
+Lanes and targets can be marked as "training only" in the archery ground configuration.
+By default, the tournament generator **excludes** training-only lanes and targets from selection.
+
+To include training-only resources in tournament generation, set the `includeTrainingOnly` flag to `true` in the `TournamentGenerationRequest`:
+
+```php
+$request = new TournamentGenerationRequest(
+    archeryGround: $archeryGround,
+    ruleset: Ruleset::DSB_3D,
+    amountOfTargets: 16,
+    includeTrainingOnly: true,  // Include training-only lanes and targets
+);
+```
+
+This is useful for practice sessions or informal tournaments where training resources should be used.
+
 ## Key Types
 
 - `TournamentGenerationRequest` (DTO): external inputs to the pipeline

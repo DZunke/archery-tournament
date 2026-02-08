@@ -48,6 +48,7 @@ final readonly class CreateTournamentHandler
                         ruleset: $command->ruleset,
                         amountOfTargets: $command->numberOfTargets,
                         randomizeStakesBetweenRounds: $command->randomizeStakesBetweenRounds,
+                        includeTrainingOnly: $command->includeTrainingOnly,
                     ),
                 );
                 $tournament->replaceTargets($generated->targets());

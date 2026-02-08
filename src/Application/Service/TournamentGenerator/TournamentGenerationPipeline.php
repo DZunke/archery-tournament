@@ -34,6 +34,7 @@ final class TournamentGenerationPipeline
             $request->ruleset,
             $request->amountOfTargets,
             $request->randomizeStakesBetweenRounds,
+            $request->includeTrainingOnly,
         );
         foreach ($this->steps as $step) {
             if (! $step->supports($tournamentResult)) {

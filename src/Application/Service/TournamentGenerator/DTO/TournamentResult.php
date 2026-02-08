@@ -25,6 +25,7 @@ final class TournamentResult
         public readonly Ruleset $ruleset,
         public readonly int $numberOfTargets,
         public bool $randomizeStakesBetweenRounds = false,
+        public readonly bool $includeTrainingOnly = false,
     ) {
         $this->targets = new TournamentTargetCollection();
     }
