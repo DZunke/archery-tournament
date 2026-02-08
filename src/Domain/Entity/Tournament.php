@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use App\Domain\Entity\Tournament\Attachment;
 use App\Domain\ValueObject\Ruleset;
 use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
@@ -11,6 +12,7 @@ use Webmozart\Assert\Assert;
 
 final class Tournament
 {
+    /** @param list<Attachment> $attachments */
     public function __construct(
         private readonly string $id,
         private readonly string $name,
@@ -19,6 +21,7 @@ final class Tournament
         private readonly ArcheryGround $archeryGround,
         private readonly int $numberOfTargets,
         private TournamentTargetCollection $targets,
+        private array $attachments = [],
     ) {
         Assert::uuid($this->id, 'The tournament id must be a valid UUID.');
         Assert::notEmpty($this->name, 'The tournament name must not be empty.');
@@ -85,5 +88,16 @@ final class Tournament
     public function addTarget(TournamentTarget $target): void
     {
         $this->targets->add($target);
+    }
+
+    /** @return list<Attachment> */
+    public function attachments(): array
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(Attachment $attachment): void
+    {
+        $this->attachments[] = $attachment;
     }
 }

@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Dbal;
 
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Entity\Tournament;
+use App\Domain\Entity\Tournament\Attachment;
 use App\Domain\Entity\TournamentTargetCollection;
 use App\Domain\Repository\ArcheryGroundRepository;
 use App\Domain\Repository\TournamentRepository;
@@ -86,7 +87,8 @@ final readonly class DbalTournamentRepository implements TournamentRepository
             return null;
         }
 
-        $targets = $this->loadTargets((string) $row['id'], $archeryGround);
+        $targets     = $this->loadTargets((string) $row['id'], $archeryGround);
+        $attachments = $this->loadAttachments((string) $row['id']);
 
         return $this->tournamentHydrator->hydrate(
             [
@@ -98,6 +100,7 @@ final readonly class DbalTournamentRepository implements TournamentRepository
             ],
             $archeryGround,
             $targets,
+            $attachments,
         );
     }
 
@@ -142,6 +145,7 @@ final readonly class DbalTournamentRepository implements TournamentRepository
 
     public function delete(string $id): void
     {
+        $this->connection->executeStatement('DELETE FROM tournament_attachments WHERE tournament_id = ?', [$id]);
         $this->connection->executeStatement('DELETE FROM tournament_targets WHERE tournament_id = ?', [$id]);
         $this->connection->executeStatement('DELETE FROM tournaments WHERE id = ?', [$id]);
     }
@@ -208,6 +212,45 @@ final readonly class DbalTournamentRepository implements TournamentRepository
         }
 
         return $collection;
+    }
+
+    /** @return list<Attachment> */
+    private function loadAttachments(string $tournamentId): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT id, title, file_path, mime_type, original_filename FROM tournament_attachments WHERE tournament_id = ?',
+            [$tournamentId],
+        );
+
+        $attachments = [];
+        foreach ($rows as $row) {
+            $attachments[] = new Attachment(
+                id: (string) $row['id'],
+                title: (string) $row['title'],
+                filePath: (string) $row['file_path'],
+                mimeType: (string) $row['mime_type'],
+                originalFilename: (string) $row['original_filename'],
+            );
+        }
+
+        return $attachments;
+    }
+
+    public function addAttachment(string $tournamentId, Attachment $attachment): void
+    {
+        $this->connection->insert('tournament_attachments', [
+            'id' => $attachment->id(),
+            'tournament_id' => $tournamentId,
+            'title' => $attachment->title(),
+            'file_path' => $attachment->filePath(),
+            'mime_type' => $attachment->mimeType(),
+            'original_filename' => $attachment->originalFilename(),
+        ]);
+    }
+
+    public function removeAttachment(string $attachmentId): void
+    {
+        $this->connection->executeStatement('DELETE FROM tournament_attachments WHERE id = ?', [$attachmentId]);
     }
 
     /** @param array<string,int> $stakes */

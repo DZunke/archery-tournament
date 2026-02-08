@@ -1,0 +1,205 @@
+{#
+    Reusable attachment dialog JavaScript handler.
+    
+    Include this at the end of templates that use attachment components:
+        {% include 'components/_attachment_scripts.html.twig' with {
+            dialog_id: 'attachment-add-dialog'
+        } %}
+    
+    Parameters:
+        - dialog_id: unique ID for the dialog element (default: 'attachment-add-dialog')
+#}
+
+{% set dialog_id = dialog_id|default('attachment-add-dialog') %}
+
+<script>
+(() => {
+    const dialogId = '{{ dialog_id }}';
+    const attachmentAddDialog = document.getElementById(dialogId);
+    const attachmentAddForm = document.getElementById(dialogId + '-form');
+    const attachmentAddToken = document.getElementById(dialogId + '-token');
+    const attachmentAddTitle = document.getElementById(dialogId + '-title');
+    const attachmentAddClose = document.querySelector('[data-' + dialogId + '-close]');
+
+    const openAttachmentAddDialog = (button) => {
+        if (!attachmentAddDialog || !attachmentAddForm || !attachmentAddToken) {
+            return;
+        }
+
+        const targetDialogId = button.dataset.dialog || 'attachment-add-dialog';
+        if (targetDialogId !== dialogId) {
+            return;
+        }
+
+        attachmentAddForm.setAttribute('action', button.dataset.action || '');
+        attachmentAddToken.value = button.dataset.token || '';
+
+        if (attachmentAddTitle) {
+            attachmentAddTitle.value = '';
+        }
+
+        const modalDropzone = attachmentAddDialog.querySelector('[data-dropzone-modal]');
+        if (modalDropzone) {
+            const preview = modalDropzone.querySelector('.dropzone-preview');
+            const content = modalDropzone.querySelector('.dropzone-content');
+            const fileInput = modalDropzone.querySelector('input[type="file"]');
+            if (preview) {
+                preview.hidden = true;
+            }
+            if (content) {
+                content.hidden = false;
+            }
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        }
+
+        if (typeof attachmentAddDialog.showModal === 'function') {
+            attachmentAddDialog.showModal();
+        } else {
+            attachmentAddDialog.classList.add('is-open');
+        }
+    };
+
+    const closeAttachmentAddDialog = () => {
+        if (!attachmentAddDialog) {
+            return;
+        }
+
+        if (typeof attachmentAddDialog.close === 'function') {
+            attachmentAddDialog.close();
+        } else {
+            attachmentAddDialog.classList.remove('is-open');
+        }
+    };
+
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        const addAttachmentButton = target.closest('.js-add-attachment');
+        if (addAttachmentButton && addAttachmentButton instanceof HTMLElement) {
+            event.preventDefault();
+            openAttachmentAddDialog(addAttachmentButton);
+            return;
+        }
+    });
+
+    if (attachmentAddClose) {
+        attachmentAddClose.addEventListener('click', closeAttachmentAddDialog);
+    }
+
+    if (attachmentAddDialog) {
+        attachmentAddDialog.addEventListener('click', (event) => {
+            if (event.target === attachmentAddDialog) {
+                closeAttachmentAddDialog();
+            }
+        });
+    }
+
+    // Initialize modal dropzone for the attachment dialog
+    const modalDropzone = attachmentAddDialog ? attachmentAddDialog.querySelector('[data-dropzone-modal]') : null;
+    if (modalDropzone) {
+        const fileInput = modalDropzone.querySelector('input[type="file"]');
+        const preview = modalDropzone.querySelector('.dropzone-preview');
+        const previewImage = modalDropzone.querySelector('.dropzone-preview img');
+        const previewName = modalDropzone.querySelector('.dropzone-filename');
+        const content = modalDropzone.querySelector('.dropzone-content');
+        const errorEl = modalDropzone.querySelector('.dropzone-error');
+
+        const maxSize = parseInt(modalDropzone.dataset.maxSize || '0', 10);
+        const allowedTypesRaw = modalDropzone.dataset.allowedTypes || '';
+        const allowedTypes = allowedTypesRaw ? allowedTypesRaw.split(',') : [];
+
+        const formatFileSize = (bytes) => {
+            if (bytes >= 1048576) {
+                return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+            return (bytes / 1024).toFixed(1) + ' KB';
+        };
+
+        const validateAndPreview = (file) => {
+            if (errorEl) {
+                errorEl.textContent = '';
+                errorEl.hidden = true;
+            }
+
+            if (!file) {
+                if (preview) preview.hidden = true;
+                if (content) content.hidden = false;
+                return false;
+            }
+
+            const errors = [];
+            if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+                errors.push('File type not allowed.');
+            }
+            if (maxSize > 0 && file.size > maxSize) {
+                errors.push('File too large (' + formatFileSize(file.size) + '). Maximum: ' + formatFileSize(maxSize));
+            }
+
+            if (errors.length > 0) {
+                if (errorEl) {
+                    errorEl.textContent = errors.join(' ');
+                    errorEl.hidden = false;
+                }
+                if (fileInput) fileInput.value = '';
+                if (preview) preview.hidden = true;
+                if (content) content.hidden = false;
+                return false;
+            }
+
+            if (file.type.startsWith('image/') && previewImage) {
+                previewImage.src = URL.createObjectURL(file);
+                previewImage.onload = () => URL.revokeObjectURL(previewImage.src);
+                previewImage.hidden = false;
+            } else if (previewImage) {
+                previewImage.hidden = true;
+            }
+
+            if (previewName) {
+                previewName.textContent = file.name;
+            }
+
+            if (preview) preview.hidden = false;
+            if (content) content.hidden = true;
+
+            return true;
+        };
+
+        if (fileInput) {
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files && fileInput.files[0];
+                validateAndPreview(file);
+            });
+        }
+
+        modalDropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            modalDropzone.classList.add('dropzone--active');
+        });
+
+        modalDropzone.addEventListener('dragleave', () => {
+            modalDropzone.classList.remove('dropzone--active');
+        });
+
+        modalDropzone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            modalDropzone.classList.remove('dropzone--active');
+            const file = event.dataTransfer && event.dataTransfer.files[0];
+            if (file && fileInput) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                validateAndPreview(file);
+            }
+        });
+
+        modalDropzone.addEventListener('click', () => {
+            if (fileInput) fileInput.click();
+        });
+    }
+})();
+</script>

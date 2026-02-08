@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Repository;
 
 use App\Domain\Entity\Tournament;
+use App\Domain\Entity\Tournament\Attachment;
 use App\Domain\Entity\TournamentTargetCollection;
 
 /**
@@ -27,4 +28,8 @@ interface TournamentRepository
     public function delete(string $id): void;
 
     public function replaceTargets(string $tournamentId, TournamentTargetCollection $targets): void;
+
+    public function addAttachment(string $tournamentId, Attachment $attachment): void;
+
+    public function removeAttachment(string $attachmentId): void;
 }

@@ -1,0 +1,38 @@
+{#
+    Reusable attachment card component.
+    
+    Parameters:
+        - attachment: attachment object with id, title, filePath, originalFilename, isImage, isPdf methods
+        - delete_route: route name for deleting the attachment
+        - entity_id: ID of the parent entity
+        - csrf_delete_prefix: CSRF token prefix for delete action
+#}
+
+<article class="card attachment-card">
+    <div class="attachment-card__preview">
+        {% if attachment.isImage %}
+            <img src="{{ attachment.filePath }}" alt="{{ attachment.title }}">
+        {% elseif attachment.isPdf %}
+            {{ ux_icon('lucide:file-text', {class: 'icon icon-lg'}) }}
+        {% else %}
+            {{ ux_icon('lucide:file', {class: 'icon icon-lg'}) }}
+        {% endif %}
+    </div>
+    <div class="attachment-card__info">
+        <h3>{{ attachment.title }}</h3>
+        <p class="muted">{{ attachment.originalFilename }}</p>
+    </div>
+    <div class="attachment-card__actions">
+        <a class="icon-button" href="{{ attachment.filePath }}" target="_blank" aria-label="Open {{ attachment.title }}">
+            {{ ux_icon('lucide:external-link', {class: 'icon'}) }}
+            <span class="sr-only">Open</span>
+        </a>
+        <form method="post" action="{{ path(delete_route, {id: entity_id, attachmentId: attachment.id}) }}" onsubmit="return confirm('Remove this attachment?')">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrf_delete_prefix ~ entity_id ~ '_' ~ attachment.id) }}">
+            <button class="icon-button danger" type="submit" aria-label="Remove attachment {{ attachment.title }}">
+                {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                <span class="sr-only">Remove</span>
+            </button>
+        </form>
+    </div>
+</article>

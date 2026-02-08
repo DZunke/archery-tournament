@@ -1,0 +1,56 @@
+{#
+    Reusable attachment add dialog component.
+    
+    Usage:
+        {% include 'components/_attachment_dialog.html.twig' with {
+            dialog_id: 'attachment-add-dialog'
+        } %}
+    
+    Parameters:
+        - dialog_id: unique ID for the dialog element (default: 'attachment-add-dialog')
+    
+    Note: The dialog form action and token are set dynamically via JavaScript
+    when the "Add attachment" button is clicked. The button should have:
+        - data-action: the form action URL
+        - data-token: the CSRF token value
+        - data-dialog: the dialog ID to open
+#}
+
+{% set dialog_id = dialog_id|default('attachment-add-dialog') %}
+{% set form_id = dialog_id ~ '-form' %}
+{% set token_id = dialog_id ~ '-token' %}
+{% set title_id = dialog_id ~ '-title' %}
+{% set close_attr = 'data-' ~ dialog_id ~ '-close' %}
+
+<dialog id="{{ dialog_id }}" class="modal">
+    <form method="post" enctype="multipart/form-data" id="{{ form_id }}" class="modal__body">
+        <input type="hidden" name="_token" id="{{ token_id }}">
+        <h3>Add attachment</h3>
+        <label class="field">
+            <span>Title</span>
+            <input type="text" name="title" id="{{ title_id }}" placeholder="Document title" required>
+        </label>
+        <label class="field">
+            <span>File</span>
+            <div class="dropzone" data-dropzone-modal data-max-size="20971520" data-allowed-types="application/pdf,image/jpeg,image/png,image/webp,image/gif">
+                <input type="file" name="file" accept=".pdf,image/*" required>
+                <div class="dropzone-content">
+                    <strong>Drag & drop</strong> or click to upload
+                    <span class="dropzone-hint">PDF, PNG, JPG, WEBP, or GIF (max 20 MB)</span>
+                </div>
+                <div class="dropzone-preview" hidden>
+                    <img src="" alt="Selected file preview">
+                    <div>
+                        <div class="dropzone-filename"></div>
+                        <div class="dropzone-hint">Drop a new file to replace</div>
+                    </div>
+                </div>
+                <div class="dropzone-error" hidden></div>
+            </div>
+        </label>
+        <div class="modal__actions">
+            <button class="button ghost" type="button" {{ close_attr }}>Cancel</button>
+            <button class="button" type="submit">Add attachment</button>
+        </div>
+    </form>
+</dialog>

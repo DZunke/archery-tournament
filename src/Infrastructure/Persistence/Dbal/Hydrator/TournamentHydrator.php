@@ -6,15 +6,23 @@ namespace App\Infrastructure\Persistence\Dbal\Hydrator;
 
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Entity\Tournament;
+use App\Domain\Entity\Tournament\Attachment;
 use App\Domain\Entity\TournamentTargetCollection;
 use App\Domain\ValueObject\Ruleset;
 use DateTimeImmutable;
 
 final class TournamentHydrator
 {
-    /** @param array{id: string, name: string, event_date: string, ruleset: string, number_of_targets: int|string} $row */
-    public function hydrate(array $row, ArcheryGround $archeryGround, TournamentTargetCollection $targets): Tournament
-    {
+    /**
+     * @param array{id: string, name: string, event_date: string, ruleset: string, number_of_targets: int|string} $row
+     * @param list<Attachment>                                                                                    $attachments
+     */
+    public function hydrate(
+        array $row,
+        ArcheryGround $archeryGround,
+        TournamentTargetCollection $targets,
+        array $attachments = [],
+    ): Tournament {
         return new Tournament(
             id: $row['id'],
             name: $row['name'],
@@ -23,6 +31,7 @@ final class TournamentHydrator
             archeryGround: $archeryGround,
             numberOfTargets: (int) $row['number_of_targets'],
             targets: $targets,
+            attachments: $attachments,
         );
     }
 }

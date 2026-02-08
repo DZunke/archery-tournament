@@ -377,60 +377,15 @@
     </div>
 </section>
 
-<section class="panel panel-spaced">
-    <div class="panel-header">
-        <h2>Attachments</h2>
-        <span class="badge">{{ archeryGround.attachments|length }}</span>
-        <button
-            class="button js-add-attachment"
-            type="button"
-            data-action="{{ path('archery_ground_add_attachment', {id: archeryGround.id}) }}"
-            data-token="{{ csrf_token('archery_ground_add_attachment_' ~ archeryGround.id) }}"
-        >
-            {{ ux_icon('lucide:plus', {class: 'icon'}) }}
-            <span>Add attachment</span>
-        </button>
-    </div>
-    <p class="muted">Upload PDF documents or images to document your archery ground, such as lane overviews or maps.</p>
-
-    <div class="grid attachment-grid">
-        {% for attachment in archeryGround.attachments %}
-            <article class="card attachment-card">
-                <div class="attachment-card__preview">
-                    {% if attachment.isImage %}
-                        <img src="{{ attachment.filePath }}" alt="{{ attachment.title }}">
-                    {% elseif attachment.isPdf %}
-                        {{ ux_icon('lucide:file-text', {class: 'icon icon-lg'}) }}
-                    {% else %}
-                        {{ ux_icon('lucide:file', {class: 'icon icon-lg'}) }}
-                    {% endif %}
-                </div>
-                <div class="attachment-card__info">
-                    <h3>{{ attachment.title }}</h3>
-                    <p class="muted">{{ attachment.originalFilename }}</p>
-                </div>
-                <div class="attachment-card__actions">
-                    <a class="icon-button" href="{{ attachment.filePath }}" target="_blank" aria-label="Open {{ attachment.title }}">
-                        {{ ux_icon('lucide:external-link', {class: 'icon'}) }}
-                        <span class="sr-only">Open</span>
-                    </a>
-                    <form method="post" action="{{ path('archery_ground_delete_attachment', {id: archeryGround.id, attachmentId: attachment.id}) }}" onsubmit="return confirm('Remove this attachment?')">
-                        <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_attachment_' ~ archeryGround.id ~ '_' ~ attachment.id) }}">
-                        <button class="icon-button danger" type="submit" aria-label="Remove attachment {{ attachment.title }}">
-                            {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
-                            <span class="sr-only">Remove</span>
-                        </button>
-                    </form>
-                </div>
-            </article>
-        {% else %}
-            <div class="empty-state">
-                <h2>No attachments yet</h2>
-                <p>Upload documents or images to document your archery ground.</p>
-            </div>
-        {% endfor %}
-    </div>
-</section>
+{% include 'components/_attachment_section.html.twig' with {
+    attachments: archeryGround.attachments,
+    add_route: 'archery_ground_add_attachment',
+    delete_route: 'archery_ground_delete_attachment',
+    entity_id: archeryGround.id,
+    csrf_add_prefix: 'archery_ground_add_attachment_',
+    csrf_delete_prefix: 'archery_ground_delete_attachment_',
+    description: 'Upload PDF documents or images to document your archery ground, such as lane overviews or maps.'
+} %}
 
 <dialog id="lane-dialog" class="modal">
     <form method="post" id="lane-form" class="modal__body">
@@ -625,38 +580,7 @@
     </form>
 </dialog>
 
-<dialog id="attachment-add-dialog" class="modal">
-    <form method="post" enctype="multipart/form-data" id="attachment-add-form" class="modal__body">
-        <input type="hidden" name="_token" id="attachment-add-token">
-        <h3>Add attachment</h3>
-        <label class="field">
-            <span>Title</span>
-            <input type="text" name="title" id="attachment-add-title" placeholder="Ground overview" required>
-        </label>
-        <label class="field">
-            <span>File</span>
-            <div class="dropzone" data-dropzone-modal data-max-size="20971520" data-allowed-types="application/pdf,image/jpeg,image/png,image/webp,image/gif">
-                <input type="file" name="file" accept=".pdf,image/*" required>
-                <div class="dropzone-content">
-                    <strong>Drag & drop</strong> or click to upload
-                    <span class="dropzone-hint">PDF, PNG, JPG, WEBP, or GIF (max 20 MB)</span>
-                </div>
-                <div class="dropzone-preview" hidden>
-                    <img src="" alt="Selected file preview">
-                    <div>
-                        <div class="dropzone-filename"></div>
-                        <div class="dropzone-hint">Drop a new file to replace</div>
-                    </div>
-                </div>
-                <div class="dropzone-error" hidden></div>
-            </div>
-        </label>
-        <div class="modal__actions">
-            <button class="button ghost" type="button" data-attachment-add-close>Cancel</button>
-            <button class="button" type="submit">Add attachment</button>
-        </div>
-    </form>
-</dialog>
+{% include 'components/_attachment_dialog.html.twig' %}
 
 <script>
 (() => {
@@ -713,12 +637,6 @@
     const targetAddZoneSizeInput = document.getElementById('target-add-zone-size');
     const targetAddType = document.getElementById('target-add-type');
     const targetAddClose = document.querySelector('[data-target-add-close]');
-
-    const attachmentAddDialog = document.getElementById('attachment-add-dialog');
-    const attachmentAddForm = document.getElementById('attachment-add-form');
-    const attachmentAddToken = document.getElementById('attachment-add-token');
-    const attachmentAddTitle = document.getElementById('attachment-add-title');
-    const attachmentAddClose = document.querySelector('[data-attachment-add-close]');
 
     // Zone size to target type conversion
     // Group 1: > 250mm, Group 2: 201-250mm, Group 3: 150-200mm, Group 4: < 150mm
@@ -1092,53 +1010,6 @@
         }
     };
 
-    const openAttachmentAddDialog = (button) => {
-        if (!attachmentAddDialog || !attachmentAddForm || !attachmentAddToken) {
-            return;
-        }
-
-        attachmentAddForm.setAttribute('action', button.dataset.action || '');
-        attachmentAddToken.value = button.dataset.token || '';
-
-        if (attachmentAddTitle) {
-            attachmentAddTitle.value = '';
-        }
-
-        const modalDropzone = attachmentAddDialog.querySelector('[data-dropzone-modal]');
-        if (modalDropzone) {
-            const preview = modalDropzone.querySelector('.dropzone-preview');
-            const content = modalDropzone.querySelector('.dropzone-content');
-            const fileInput = modalDropzone.querySelector('input[type="file"]');
-            if (preview) {
-                preview.hidden = true;
-            }
-            if (content) {
-                content.hidden = false;
-            }
-            if (fileInput) {
-                fileInput.value = '';
-            }
-        }
-
-        if (typeof attachmentAddDialog.showModal === 'function') {
-            attachmentAddDialog.showModal();
-        } else {
-            attachmentAddDialog.classList.add('is-open');
-        }
-    };
-
-    const closeAttachmentAddDialog = () => {
-        if (!attachmentAddDialog) {
-            return;
-        }
-
-        if (typeof attachmentAddDialog.close === 'function') {
-            attachmentAddDialog.close();
-        } else {
-            attachmentAddDialog.classList.remove('is-open');
-        }
-    };
-
     document.addEventListener('click', (event) => {
         const target = event.target;
         if (!(target instanceof Element)) {
@@ -1163,13 +1034,6 @@
         if (addTargetButton && addTargetButton instanceof HTMLElement) {
             event.preventDefault();
             openTargetAddDialog(addTargetButton);
-            return;
-        }
-
-        const addAttachmentButton = target.closest('.js-add-attachment');
-        if (addAttachmentButton && addAttachmentButton instanceof HTMLElement) {
-            event.preventDefault();
-            openAttachmentAddDialog(addAttachmentButton);
             return;
         }
 
@@ -1214,18 +1078,6 @@
         targetAddDialog.addEventListener('click', (event) => {
             if (event.target === targetAddDialog) {
                 closeTargetAddDialog();
-            }
-        });
-    }
-
-    if (attachmentAddClose) {
-        attachmentAddClose.addEventListener('click', closeAttachmentAddDialog);
-    }
-
-    if (attachmentAddDialog) {
-        attachmentAddDialog.addEventListener('click', (event) => {
-            if (event.target === attachmentAddDialog) {
-                closeAttachmentAddDialog();
             }
         });
     }
@@ -1621,4 +1473,8 @@
     }
 })();
 </script>
+
+{% include 'components/_attachment_scripts.html.twig' with {
+    dialog_id: 'attachment-add-dialog'
+} %}
 {% endblock %}

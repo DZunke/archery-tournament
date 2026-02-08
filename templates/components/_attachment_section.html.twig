@@ -1,0 +1,62 @@
+{#
+    Reusable attachment section component.
+    
+    Usage:
+        {% include 'components/_attachment_section.html.twig' with {
+            attachments: entity.attachments,
+            add_route: 'tournament_add_attachment',
+            delete_route: 'tournament_delete_attachment',
+            entity_id: tournament.id,
+            csrf_add_prefix: 'tournament_add_attachment_',
+            csrf_delete_prefix: 'tournament_delete_attachment_',
+            description: 'Upload PDF documents or images related to this tournament.'
+        } %}
+    
+    Parameters:
+        - attachments: list of attachment objects with id, title, filePath, originalFilename, isImage, isPdf methods
+        - add_route: route name for adding attachments
+        - delete_route: route name for deleting attachments
+        - entity_id: ID of the parent entity
+        - csrf_add_prefix: CSRF token prefix for add action
+        - csrf_delete_prefix: CSRF token prefix for delete action
+        - description: description text shown below the header (optional)
+        - dialog_id: unique ID for the dialog element (default: 'attachment-add-dialog')
+#}
+
+{% set dialog_id = dialog_id|default('attachment-add-dialog') %}
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Attachments</h2>
+        <span class="badge">{{ attachments|length }}</span>
+        <button
+            class="button js-add-attachment"
+            type="button"
+            data-action="{{ path(add_route, {id: entity_id}) }}"
+            data-token="{{ csrf_token(csrf_add_prefix ~ entity_id) }}"
+            data-dialog="{{ dialog_id }}"
+        >
+            {{ ux_icon('lucide:plus', {class: 'icon'}) }}
+            <span>Add attachment</span>
+        </button>
+    </div>
+    {% if description is defined and description %}
+        <p class="muted">{{ description }}</p>
+    {% endif %}
+
+    <div class="grid attachment-grid">
+        {% for attachment in attachments %}
+            {% include 'components/_attachment_card.html.twig' with {
+                attachment: attachment,
+                delete_route: delete_route,
+                entity_id: entity_id,
+                csrf_delete_prefix: csrf_delete_prefix
+            } only %}
+        {% else %}
+            <div class="empty-state">
+                <h2>No attachments yet</h2>
+                <p>Upload documents or images to add them here.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>

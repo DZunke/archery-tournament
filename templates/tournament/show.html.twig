@@ -192,6 +192,21 @@
     </form>
 </section>
 
+{% include 'components/_attachment_section.html.twig' with {
+    attachments: tournament.attachments,
+    add_route: 'tournament_add_attachment',
+    delete_route: 'tournament_delete_attachment',
+    entity_id: tournament.id,
+    csrf_add_prefix: 'tournament_add_attachment_',
+    csrf_delete_prefix: 'tournament_delete_attachment_',
+    description: 'Upload PDF documents or images related to this tournament, such as rules or schedules.',
+    dialog_id: 'tournament-attachment-dialog'
+} %}
+
+{% include 'components/_attachment_dialog.html.twig' with {
+    dialog_id: 'tournament-attachment-dialog'
+} %}
+
 <template id="assignment-template">
     <div class="table-row assignment-row">
         <input type="number" name="assignments[__INDEX__][round]" value="1" min="1" required>
@@ -309,4 +324,8 @@
     });
 })();
 </script>
+
+{% include 'components/_attachment_scripts.html.twig' with {
+    dialog_id: 'tournament-attachment-dialog'
+} %}
 {% endblock %}

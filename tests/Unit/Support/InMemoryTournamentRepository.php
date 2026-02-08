@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Support;
 
 use App\Domain\Entity\Tournament;
+use App\Domain\Entity\Tournament\Attachment;
 use App\Domain\Entity\TournamentTargetCollection;
 use App\Domain\Repository\TournamentRepository;
 use Symfony\Component\Uid\Uuid;
@@ -25,6 +26,12 @@ final class InMemoryTournamentRepository implements TournamentRepository
 
     /** @var list<array{tournamentId: string, targets: TournamentTargetCollection}> */
     public array $replacedTargets = [];
+
+    /** @var list<array{tournamentId: string, attachment: Attachment}> */
+    public array $addedAttachments = [];
+
+    /** @var list<string> */
+    public array $removedAttachments = [];
 
     public function nextIdentity(): string
     {
@@ -69,6 +76,19 @@ final class InMemoryTournamentRepository implements TournamentRepository
             'tournamentId' => $tournamentId,
             'targets' => $targets,
         ];
+    }
+
+    public function addAttachment(string $tournamentId, Attachment $attachment): void
+    {
+        $this->addedAttachments[] = [
+            'tournamentId' => $tournamentId,
+            'attachment' => $attachment,
+        ];
+    }
+
+    public function removeAttachment(string $attachmentId): void
+    {
+        $this->removedAttachments[] = $attachmentId;
     }
 
     public function seed(Tournament $tournament): void
