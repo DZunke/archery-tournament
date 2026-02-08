@@ -58,6 +58,9 @@ final readonly class CreateTournamentHandler
 
         $this->tournamentRepository->save($tournament);
 
-        return CommandResult::success('Tournament created.', ['id' => $tournament->id()]);
+        return CommandResult::success(
+            'The tournament "' . $command->name . '" was created.',
+            ['id' => $tournament->id()],
+        );
     }
 }

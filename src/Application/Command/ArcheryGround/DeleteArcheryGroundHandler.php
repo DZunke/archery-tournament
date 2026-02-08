@@ -26,8 +26,10 @@ final readonly class DeleteArcheryGroundHandler
             }
         }
 
+        $groundName = $archeryGround instanceof ArcheryGround ? $archeryGround->name() : 'Unknown';
+
         $this->archeryGroundRepository->delete($command->id);
 
-        return CommandResult::success('Archery ground deleted.');
+        return CommandResult::success('The archery ground "' . $groundName . '" was deleted.');
     }
 }

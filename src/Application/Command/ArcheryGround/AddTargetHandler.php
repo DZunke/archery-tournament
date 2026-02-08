@@ -37,6 +37,6 @@ final readonly class AddTargetHandler
 
         $this->archeryGroundRepository->addTarget($command->archeryGroundId, $target);
 
-        return CommandResult::success('Target added.');
+        return CommandResult::success('The target "' . $command->name . '" was added.');
     }
 }

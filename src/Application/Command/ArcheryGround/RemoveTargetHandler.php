@@ -24,10 +24,12 @@ final readonly class RemoveTargetHandler
             return CommandResult::failure('Archery ground not found.');
         }
 
-        $imagePath = null;
+        $imagePath  = null;
+        $targetName = 'Unknown';
         foreach ($archeryGround->targetStorage() as $target) {
             if ($target->id() === $command->targetId) {
-                $imagePath = $target->image();
+                $imagePath  = $target->image();
+                $targetName = $target->name();
                 break;
             }
         }
@@ -38,6 +40,6 @@ final readonly class RemoveTargetHandler
 
         $this->archeryGroundRepository->removeTarget($command->targetId);
 
-        return CommandResult::success('Target removed.');
+        return CommandResult::success('The target "' . $targetName . '" was removed.');
     }
 }

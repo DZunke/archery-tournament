@@ -73,6 +73,6 @@ final readonly class UpdateTournamentTargetsHandler
         $tournament->replaceTargets($collection);
         $this->tournamentRepository->save($tournament);
 
-        return CommandResult::success('Tournament assignments saved.');
+        return CommandResult::success('Assignments for tournament "' . $tournament->name() . '" were saved.');
     }
 }

@@ -25,9 +25,11 @@ final readonly class UpdateTargetImageHandler
         }
 
         $existingImage = null;
+        $targetName    = 'Unknown';
         foreach ($archeryGround->targetStorage() as $target) {
             if ($target->id() === $command->targetId) {
                 $existingImage = $target->image();
+                $targetName    = $target->name();
                 break;
             }
         }
@@ -43,6 +45,6 @@ final readonly class UpdateTargetImageHandler
             $this->targetImageStorage->remove($existingImage);
         }
 
-        return CommandResult::success('Target image updated.');
+        return CommandResult::success('The image for target "' . $targetName . '" was updated.');
     }
 }

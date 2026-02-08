@@ -24,6 +24,6 @@ final readonly class AddShootingLaneHandler
 
         $this->archeryGroundRepository->addShootingLane($command->archeryGroundId, $lane);
 
-        return CommandResult::success('Lane added.');
+        return CommandResult::success('The shooting lane "' . $command->name . '" was added.');
     }
 }

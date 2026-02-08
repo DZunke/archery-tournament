@@ -40,6 +40,6 @@ final readonly class UpdateShootingLaneHandler
             maxDistance: $command->maxDistance,
         );
 
-        return CommandResult::success('Lane updated.');
+        return CommandResult::success('The shooting lane "' . $command->name . '" was updated.');
     }
 }

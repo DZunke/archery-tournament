@@ -39,24 +39,16 @@
         <div class="panel-header">
             <h2>Lanes</h2>
             <span class="badge">{{ archeryGround.shootingLanes|length }}</span>
-        </div>
-        <form method="post" class="form" action="{{ path('archery_ground_add_lane', {id: archeryGround.id}) }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_add_lane_' ~ archeryGround.id) }}">
-            <div class="form-row">
-                <label class="field">
-                    <span>Lane name</span>
-                    <input type="text" name="name" placeholder="Lane 1" required>
-                </label>
-                <label class="field">
-                    <span>Max distance (m)</span>
-                    <input type="number" name="max_distance" step="0.1" min="0.1" placeholder="30" required>
-                </label>
-            </div>
-            <button class="button" type="submit">
+            <button
+                class="button js-add-lane"
+                type="button"
+                data-action="{{ path('archery_ground_add_lane', {id: archeryGround.id}) }}"
+                data-token="{{ csrf_token('archery_ground_add_lane_' ~ archeryGround.id) }}"
+            >
                 {{ ux_icon('lucide:plus', {class: 'icon'}) }}
                 <span>Add lane</span>
             </button>
-        </form>
+        </div>
 
         <div class="table lanes">
             <div class="table-row table-head">
@@ -102,72 +94,16 @@
         <div class="panel-header">
             <h2>Targets</h2>
             <span class="badge">{{ archeryGround.targetStorage|length }}</span>
-        </div>
-        <form method="post" class="form" action="{{ path('archery_ground_add_target', {id: archeryGround.id}) }}" enctype="multipart/form-data">
-            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_add_target_' ~ archeryGround.id) }}">
-            <div class="form-row">
-                <label class="field">
-                    <span>Type</span>
-                    <div class="icon-select" data-icon-select>
-                        <select name="type" class="icon-select__native" required>
-                            {% for type in targetTypes %}
-                                <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
-                            {% endfor %}
-                        </select>
-                        {% if defaultTargetType %}
-                            <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-                                <span class="icon-select__icon">
-                                    {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
-                                </span>
-                                <span class="icon-select__label">{{ target_type_label(defaultTargetType.value) }}</span>
-                                {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
-                            </button>
-                            <div class="icon-select__options" role="listbox">
-                                {% for type in targetTypes %}
-                                    <button
-                                        type="button"
-                                        class="icon-select__option"
-                                        data-value="{{ type.value }}"
-                                        role="option"
-                                        aria-selected="{{ loop.first ? 'true' : 'false' }}"
-                                    >
-                                        <span class="icon-select__icon">
-                                            {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
-                                        </span>
-                                        <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
-                                    </button>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </label>
-                <label class="field">
-                    <span>Target name</span>
-                    <input type="text" name="name" placeholder="Deer" required>
-                </label>
-                <label class="field">
-                    <span>Target image</span>
-                    <div class="dropzone" data-dropzone>
-                        <input type="file" name="image" accept="image/*" required>
-                        <div class="dropzone-content">
-                            <strong>Drag & drop</strong> or click to upload
-                            <span class="dropzone-hint">PNG, JPG, WEBP, or GIF</span>
-                        </div>
-                        <div class="dropzone-preview" hidden>
-                            <img src="" alt="Selected target preview">
-                            <div>
-                                <div class="dropzone-filename"></div>
-                                <div class="dropzone-hint">Drop a new image to replace</div>
-                            </div>
-                        </div>
-                    </div>
-                </label>
-            </div>
-            <button class="button" type="submit">
+            <button
+                class="button js-add-target"
+                type="button"
+                data-action="{{ path('archery_ground_add_target', {id: archeryGround.id}) }}"
+                data-token="{{ csrf_token('archery_ground_add_target_' ~ archeryGround.id) }}"
+            >
                 {{ ux_icon('lucide:plus', {class: 'icon'}) }}
                 <span>Add target</span>
             </button>
-        </form>
+        </div>
 
         <div class="filter-bar" role="search" aria-label="Filter targets">
             <label class="field">
@@ -393,18 +329,85 @@
 <dialog id="lane-dialog" class="modal">
     <form method="post" id="lane-form" class="modal__body">
         <input type="hidden" name="_token" id="lane-token">
-        <h3>Edit lane <span id="lane-name-label"></span></h3>
+        <h3 id="lane-dialog-title">Edit lane <span id="lane-name-label"></span></h3>
         <label class="field">
             <span>Lane name</span>
-            <input type="text" name="name" id="lane-name-input" required>
+            <input type="text" name="name" id="lane-name-input" placeholder="Lane 1" required>
         </label>
         <label class="field">
             <span>Max distance (m)</span>
-            <input type="number" name="max_distance" id="lane-distance-input" min="0.1" step="0.1" required>
+            <input type="number" name="max_distance" id="lane-distance-input" min="0.1" step="0.1" placeholder="30" required>
         </label>
         <div class="modal__actions">
             <button class="button ghost" type="button" data-lane-close>Cancel</button>
-            <button class="button" type="submit">Save changes</button>
+            <button class="button" type="submit" id="lane-submit-btn">Save changes</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="target-add-dialog" class="modal">
+    <form method="post" enctype="multipart/form-data" id="target-add-form" class="modal__body">
+        <input type="hidden" name="_token" id="target-add-token">
+        <h3>Add target</h3>
+        <label class="field">
+            <span>Type</span>
+            <div class="icon-select" data-icon-select>
+                <select name="type" id="target-add-type" class="icon-select__native" required>
+                    {% for type in targetTypes %}
+                        <option value="{{ type.value }}">{{ target_type_label(type.value) }}</option>
+                    {% endfor %}
+                </select>
+                {% if defaultTargetType %}
+                    <button class="icon-select__trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="icon-select__icon">
+                            {{ ux_icon(target_type_icon(defaultTargetType.value), {class: 'icon'}) }}
+                        </span>
+                        <span class="icon-select__label">{{ target_type_label(defaultTargetType.value) }}</span>
+                        {{ ux_icon('lucide:chevron-down', {class: 'icon icon-select__chevron'}) }}
+                    </button>
+                    <div class="icon-select__options" role="listbox">
+                        {% for type in targetTypes %}
+                            <button
+                                type="button"
+                                class="icon-select__option"
+                                data-value="{{ type.value }}"
+                                role="option"
+                                aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                            >
+                                <span class="icon-select__icon">
+                                    {{ ux_icon(target_type_icon(type.value), {class: 'icon'}) }}
+                                </span>
+                                <span class="icon-select__label">{{ target_type_label(type.value) }}</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </label>
+        <label class="field">
+            <span>Target name</span>
+            <input type="text" name="name" id="target-add-name" placeholder="Deer" required>
+        </label>
+        <label class="field">
+            <span>Target image</span>
+            <div class="dropzone" data-dropzone-modal>
+                <input type="file" name="image" accept="image/*" required>
+                <div class="dropzone-content">
+                    <strong>Drag & drop</strong> or click to upload
+                    <span class="dropzone-hint">PNG, JPG, WEBP, or GIF</span>
+                </div>
+                <div class="dropzone-preview" hidden>
+                    <img src="" alt="Selected target preview">
+                    <div>
+                        <div class="dropzone-filename"></div>
+                        <div class="dropzone-hint">Drop a new image to replace</div>
+                    </div>
+                </div>
+            </div>
+        </label>
+        <div class="modal__actions">
+            <button class="button ghost" type="button" data-target-add-close>Cancel</button>
+            <button class="button" type="submit">Add target</button>
         </div>
     </form>
 </dialog>
@@ -447,10 +450,18 @@
     const laneDialog = document.getElementById('lane-dialog');
     const laneForm = document.getElementById('lane-form');
     const laneToken = document.getElementById('lane-token');
+    const laneDialogTitle = document.getElementById('lane-dialog-title');
     const laneNameLabel = document.getElementById('lane-name-label');
     const laneNameInput = document.getElementById('lane-name-input');
     const laneDistanceInput = document.getElementById('lane-distance-input');
+    const laneSubmitBtn = document.getElementById('lane-submit-btn');
     const laneClose = document.querySelector('[data-lane-close]');
+
+    const targetAddDialog = document.getElementById('target-add-dialog');
+    const targetAddForm = document.getElementById('target-add-form');
+    const targetAddToken = document.getElementById('target-add-token');
+    const targetAddName = document.getElementById('target-add-name');
+    const targetAddClose = document.querySelector('[data-target-add-close]');
 
     const openDialog = (button) => {
         if (!dialog || !dialogForm || !dialogToken || !dialogName) {
@@ -490,22 +501,88 @@
         }
     };
 
-    const openLaneDialog = (button) => {
+    const openLaneDialog = (button, isEditMode = true) => {
         if (!laneDialog || !laneForm || !laneToken || !laneNameInput || !laneDistanceInput) {
             return;
         }
 
         laneForm.setAttribute('action', button.dataset.action || '');
         laneToken.value = button.dataset.token || '';
-        const laneName = button.dataset.name || 'Lane';
-        laneNameLabel.textContent = laneName;
-        laneNameInput.value = laneName;
-        laneDistanceInput.value = button.dataset.distance || '';
+
+        if (isEditMode) {
+            const laneName = button.dataset.name || 'Lane';
+            if (laneDialogTitle) {
+                laneDialogTitle.textContent = 'Edit lane ' + laneName;
+            }
+            laneNameLabel.textContent = laneName;
+            laneNameInput.value = laneName;
+            laneDistanceInput.value = button.dataset.distance || '';
+            if (laneSubmitBtn) {
+                laneSubmitBtn.textContent = 'Save changes';
+            }
+        } else {
+            if (laneDialogTitle) {
+                laneDialogTitle.textContent = 'Add lane';
+            }
+            laneNameLabel.textContent = '';
+            laneNameInput.value = '';
+            laneDistanceInput.value = '';
+            if (laneSubmitBtn) {
+                laneSubmitBtn.textContent = 'Add lane';
+            }
+        }
 
         if (typeof laneDialog.showModal === 'function') {
             laneDialog.showModal();
         } else {
             laneDialog.classList.add('is-open');
+        }
+    };
+
+    const openTargetAddDialog = (button) => {
+        if (!targetAddDialog || !targetAddForm || !targetAddToken) {
+            return;
+        }
+
+        targetAddForm.setAttribute('action', button.dataset.action || '');
+        targetAddToken.value = button.dataset.token || '';
+
+        if (targetAddName) {
+            targetAddName.value = '';
+        }
+
+        const modalDropzone = targetAddDialog.querySelector('[data-dropzone-modal]');
+        if (modalDropzone) {
+            const preview = modalDropzone.querySelector('.dropzone-preview');
+            const content = modalDropzone.querySelector('.dropzone-content');
+            const fileInput = modalDropzone.querySelector('input[type="file"]');
+            if (preview) {
+                preview.hidden = true;
+            }
+            if (content) {
+                content.hidden = false;
+            }
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        }
+
+        if (typeof targetAddDialog.showModal === 'function') {
+            targetAddDialog.showModal();
+        } else {
+            targetAddDialog.classList.add('is-open');
+        }
+    };
+
+    const closeTargetAddDialog = () => {
+        if (!targetAddDialog) {
+            return;
+        }
+
+        if (typeof targetAddDialog.close === 'function') {
+            targetAddDialog.close();
+        } else {
+            targetAddDialog.classList.remove('is-open');
         }
     };
 
@@ -527,10 +604,24 @@
             return;
         }
 
+        const addLaneButton = target.closest('.js-add-lane');
+        if (addLaneButton && addLaneButton instanceof HTMLElement) {
+            event.preventDefault();
+            openLaneDialog(addLaneButton, false);
+            return;
+        }
+
         const laneButton = target.closest('.js-edit-lane');
         if (laneButton && laneButton instanceof HTMLElement) {
             event.preventDefault();
-            openLaneDialog(laneButton);
+            openLaneDialog(laneButton, true);
+            return;
+        }
+
+        const addTargetButton = target.closest('.js-add-target');
+        if (addTargetButton && addTargetButton instanceof HTMLElement) {
+            event.preventDefault();
+            openTargetAddDialog(addTargetButton);
             return;
         }
 
@@ -565,6 +656,93 @@
                 closeLaneDialog();
             }
         });
+    }
+
+    if (targetAddClose) {
+        targetAddClose.addEventListener('click', closeTargetAddDialog);
+    }
+
+    if (targetAddDialog) {
+        targetAddDialog.addEventListener('click', (event) => {
+            if (event.target === targetAddDialog) {
+                closeTargetAddDialog();
+            }
+        });
+    }
+
+    const modalDropzone = document.querySelector('[data-dropzone-modal]');
+    if (modalDropzone instanceof HTMLElement) {
+        const fileInput = modalDropzone.querySelector('input[type="file"]');
+        const preview = modalDropzone.querySelector('.dropzone-preview');
+        const previewImage = modalDropzone.querySelector('.dropzone-preview img');
+        const previewName = modalDropzone.querySelector('.dropzone-filename');
+        const content = modalDropzone.querySelector('.dropzone-content');
+
+        const updateModalPreview = (file) => {
+            if (!preview || !previewImage || !previewName || !content) {
+                return;
+            }
+
+            previewImage.src = URL.createObjectURL(file);
+            previewImage.onload = () => URL.revokeObjectURL(previewImage.src);
+            previewName.textContent = file.name;
+            preview.hidden = false;
+            content.hidden = true;
+        };
+
+        const resetModalPreview = () => {
+            if (!preview || !previewImage || !previewName || !content) {
+                return;
+            }
+
+            preview.hidden = true;
+            content.hidden = false;
+            previewImage.src = '';
+            previewName.textContent = '';
+        };
+
+        modalDropzone.addEventListener('dragenter', (event) => {
+            event.preventDefault();
+            modalDropzone.classList.add('is-dragging');
+        });
+
+        modalDropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            modalDropzone.classList.add('is-dragging');
+        });
+
+        modalDropzone.addEventListener('dragleave', () => {
+            modalDropzone.classList.remove('is-dragging');
+        });
+
+        modalDropzone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            modalDropzone.classList.remove('is-dragging');
+            if (!fileInput) {
+                return;
+            }
+
+            const [file] = event.dataTransfer.files;
+            if (!file) {
+                resetModalPreview();
+                return;
+            }
+
+            fileInput.files = event.dataTransfer.files;
+            updateModalPreview(file);
+        });
+
+        if (fileInput) {
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files && fileInput.files[0];
+                if (!file) {
+                    resetModalPreview();
+                    return;
+                }
+
+                updateModalPreview(file);
+            });
+        }
     }
 
     const refreshIconSelect = (nativeSelect) => {
@@ -702,81 +880,6 @@
             });
             update();
         }
-
-    const dropzone = document.querySelector('[data-dropzone]');
-    if (dropzone instanceof HTMLElement) {
-        const fileInput = dropzone.querySelector('input[type="file"]');
-        const preview = dropzone.querySelector('.dropzone-preview');
-        const previewImage = dropzone.querySelector('.dropzone-preview img');
-        const previewName = dropzone.querySelector('.dropzone-filename');
-        const content = dropzone.querySelector('.dropzone-content');
-
-        const updatePreview = (file) => {
-            if (!preview || !previewImage || !previewName || !content) {
-                return;
-            }
-
-            previewImage.src = URL.createObjectURL(file);
-            previewImage.onload = () => URL.revokeObjectURL(previewImage.src);
-            previewName.textContent = file.name;
-            preview.hidden = false;
-            content.hidden = true;
-        };
-
-        const resetPreview = () => {
-            if (!preview || !previewImage || !previewName || !content) {
-                return;
-            }
-
-            preview.hidden = true;
-            content.hidden = false;
-            previewImage.src = '';
-            previewName.textContent = '';
-        };
-
-        dropzone.addEventListener('dragenter', (event) => {
-            event.preventDefault();
-            dropzone.classList.add('is-dragging');
-        });
-
-        dropzone.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            dropzone.classList.add('is-dragging');
-        });
-
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('is-dragging');
-        });
-
-        dropzone.addEventListener('drop', (event) => {
-            event.preventDefault();
-            dropzone.classList.remove('is-dragging');
-            if (!fileInput) {
-                return;
-            }
-
-            const [file] = event.dataTransfer.files;
-            if (!file) {
-                resetPreview();
-                return;
-            }
-
-            fileInput.files = event.dataTransfer.files;
-            updatePreview(file);
-        });
-
-        if (fileInput) {
-            fileInput.addEventListener('change', () => {
-                const file = fileInput.files && fileInput.files[0];
-                if (!file) {
-                    resetPreview();
-                    return;
-                }
-
-                updatePreview(file);
-            });
-        }
-    }
 })();
 </script>
 {% endblock %}

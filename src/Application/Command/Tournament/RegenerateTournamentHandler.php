@@ -42,6 +42,6 @@ final readonly class RegenerateTournamentHandler
         $tournament->replaceTargets($generated->targets());
         $this->tournamentRepository->save($tournament);
 
-        return CommandResult::success('Tournament regenerated.');
+        return CommandResult::success('The tournament "' . $tournament->name() . '" was regenerated.');
     }
 }

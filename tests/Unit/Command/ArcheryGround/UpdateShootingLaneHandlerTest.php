@@ -29,7 +29,7 @@ final class UpdateShootingLaneHandlerTest extends TestCase
         $result = $handler(new UpdateShootingLane($groundId, $laneId, 'Updated Lane', 45.0));
 
         self::assertTrue($result->success);
-        self::assertSame('Lane updated.', $result->message);
+        self::assertSame('The shooting lane "Updated Lane" was updated.', $result->message);
         self::assertCount(1, $repository->updatedLanes);
 
         $updatedLane = $repository->updatedLanes[0];

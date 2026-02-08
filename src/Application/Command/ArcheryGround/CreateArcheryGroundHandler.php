@@ -23,6 +23,9 @@ final readonly class CreateArcheryGroundHandler
 
         $this->archeryGroundRepository->save($archeryGround);
 
-        return CommandResult::success('Archery ground created.', ['id' => $archeryGround->id()]);
+        return CommandResult::success(
+            'The archery ground "' . $command->name . '" was created.',
+            ['id' => $archeryGround->id()],
+        );
     }
 }

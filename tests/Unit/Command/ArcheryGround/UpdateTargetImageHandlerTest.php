@@ -40,7 +40,7 @@ final class UpdateTargetImageHandlerTest extends TestCase
         $result = $handler(new UpdateTargetImage($groundId, $targetId, $uploadedFile));
 
         self::assertTrue($result->success);
-        self::assertSame('Target image updated.', $result->message);
+        self::assertSame('The image for target "Deer" was updated.', $result->message);
         self::assertCount(1, $storage->stored);
         self::assertSame($targetId, $storage->stored[0]['targetId']);
         self::assertSame(['/uploads/targets/old-image.png'], $storage->removed);

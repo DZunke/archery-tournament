@@ -30,6 +30,6 @@ final readonly class RenameArcheryGroundHandler
 
         $this->archeryGroundRepository->save($updated);
 
-        return CommandResult::success('Archery ground renamed.');
+        return CommandResult::success('The archery ground was renamed to "' . $command->name . '".');
     }
 }
