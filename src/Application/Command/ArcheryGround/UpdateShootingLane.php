@@ -11,6 +11,8 @@ final readonly class UpdateShootingLane
         public string $laneId,
         public string $name,
         public float $maxDistance,
+        public bool $forTrainingOnly = false,
+        public string $notes = '',
     ) {
     }
 }

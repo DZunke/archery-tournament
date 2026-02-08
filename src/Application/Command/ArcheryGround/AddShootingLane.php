@@ -10,6 +10,8 @@ final readonly class AddShootingLane
         public string $archeryGroundId,
         public string $name,
         public float $maxDistance,
+        public bool $forTrainingOnly = false,
+        public string $notes = '',
     ) {
     }
 }

@@ -70,7 +70,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             'name' => (string) $row['name'],
         ];
         $lanesRows = $this->connection->fetchAllAssociative(
-            'SELECT id, name, max_distance FROM shooting_lanes WHERE archery_ground_id = ?',
+            'SELECT id, name, max_distance, for_training_only, notes FROM shooting_lanes WHERE archery_ground_id = ?',
             [$id],
         );
 
@@ -81,7 +81,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
 
         $lanes = [];
         foreach ($lanesRows as $laneRow) {
-            /** @var array{id: string, name: string, max_distance: float|string} $laneRow */
+            /** @var array{id: string, name: string, max_distance: float|string, for_training_only: int|string|bool, notes: string} $laneRow */
             $lanes[] = $this->shootingLaneHydrator->hydrate($laneRow);
         }
 
@@ -131,6 +131,8 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             'archery_ground_id' => $archeryGroundId,
             'name' => $lane->name(),
             'max_distance' => $lane->maxDistance(),
+            'for_training_only' => $lane->forTrainingOnly() ? 1 : 0,
+            'notes' => $lane->notes(),
         ]);
     }
 
@@ -144,10 +146,12 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
         string $laneId,
         string $name,
         float $maxDistance,
+        bool $forTrainingOnly,
+        string $notes,
     ): void {
         $this->connection->executeStatement(
-            'UPDATE shooting_lanes SET name = ?, max_distance = ? WHERE id = ? AND archery_ground_id = ?',
-            [$name, $maxDistance, $laneId, $archeryGroundId],
+            'UPDATE shooting_lanes SET name = ?, max_distance = ?, for_training_only = ?, notes = ? WHERE id = ? AND archery_ground_id = ?',
+            [$name, $maxDistance, $forTrainingOnly ? 1 : 0, $notes, $laneId, $archeryGroundId],
         );
     }
 

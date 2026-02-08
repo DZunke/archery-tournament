@@ -12,6 +12,8 @@ final class ShootingLane
         private readonly string $id,
         private readonly string $name,
         private readonly float $maxDistance,
+        private readonly bool $forTrainingOnly = false,
+        private readonly string $notes = '',
     ) {
         Assert::uuid($this->id, 'The shooting lane id must be a valid UUID.');
         Assert::notEmpty($this->name, 'The shooting lane name must not be empty.');
@@ -31,5 +33,15 @@ final class ShootingLane
     public function maxDistance(): float
     {
         return $this->maxDistance;
+    }
+
+    public function forTrainingOnly(): bool
+    {
+        return $this->forTrainingOnly;
+    }
+
+    public function notes(): string
+    {
+        return $this->notes;
     }
 }

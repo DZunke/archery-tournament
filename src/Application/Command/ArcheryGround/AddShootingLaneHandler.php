@@ -20,6 +20,8 @@ final readonly class AddShootingLaneHandler
             id: $this->archeryGroundRepository->nextIdentity(),
             name: $command->name,
             maxDistance: $command->maxDistance,
+            forTrainingOnly: $command->forTrainingOnly,
+            notes: $command->notes,
         );
 
         $this->archeryGroundRepository->addShootingLane($command->archeryGroundId, $lane);

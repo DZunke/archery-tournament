@@ -38,6 +38,8 @@ final readonly class UpdateShootingLaneHandler
             laneId: $command->laneId,
             name: $command->name,
             maxDistance: $command->maxDistance,
+            forTrainingOnly: $command->forTrainingOnly,
+            notes: $command->notes,
         );
 
         return CommandResult::success('The shooting lane "' . $command->name . '" was updated.');

@@ -33,6 +33,8 @@ interface ArcheryGroundRepository
         string $laneId,
         string $name,
         float $maxDistance,
+        bool $forTrainingOnly,
+        string $notes,
     ): void;
 
     public function addTarget(string $archeryGroundId, Target $target): void;

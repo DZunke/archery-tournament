@@ -15,6 +15,8 @@ final readonly class UpdateShootingLaneInput
     public function __construct(
         public string $name,
         public string $maxDistance,
+        public bool $forTrainingOnly,
+        public string $notes,
     ) {
     }
 
@@ -23,6 +25,8 @@ final readonly class UpdateShootingLaneInput
         return new self(
             (string) $request->request->get('name', ''),
             (string) $request->request->get('max_distance', ''),
+            $request->request->getBoolean('for_training_only'),
+            (string) $request->request->get('notes', ''),
         );
     }
 
@@ -51,6 +55,8 @@ final readonly class UpdateShootingLaneInput
             laneId: $laneId,
             name: trim($this->name),
             maxDistance: (float) $this->maxDistance,
+            forTrainingOnly: $this->forTrainingOnly,
+            notes: trim($this->notes),
         );
     }
 }
