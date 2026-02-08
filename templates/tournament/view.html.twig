@@ -26,6 +26,10 @@
             {{ ux_icon('lucide:list', {class: 'icon'}) }}
             <span>All tournaments</span>
         </a>
+        <a class="button ghost" href="{{ path('tournament_print', {id: tournament.id}) }}">
+            {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+            <span>Print</span>
+        </a>
     </div>
 </section>
 

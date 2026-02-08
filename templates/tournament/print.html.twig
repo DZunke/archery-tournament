@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ tournament.name }} · Print</title>
+    <link rel="stylesheet" href="/styles/app.css">
+    <style>
+        @media screen {
+            .print-banner {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 12px 24px;
+                background: var(--ink);
+                color: #fff;
+            }
+
+            .print-banner__info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 0.9rem;
+            }
+
+            .print-banner .button {
+                background: #fff;
+                color: var(--ink);
+            }
+
+            .print-banner .button:hover {
+                background: var(--paper-alt);
+            }
+
+            .print-actions {
+                display: flex;
+                gap: 10px;
+            }
+        }
+
+        @media print {
+            .print-banner {
+                display: none !important;
+            }
+
+            body {
+                background: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-page {
+                padding: 0 !important;
+            }
+
+            .round-section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .assignment-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .print-header {
+                margin-bottom: 16px;
+            }
+
+            .print-footer {
+                display: block !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 0.75rem;
+                color: var(--ink-soft);
+                border-top: 1px solid var(--border);
+                padding-top: 8px;
+            }
+        }
+
+        .print-page {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .print-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .print-header h1 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+        }
+
+        .print-header__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.9rem;
+            color: var(--ink-soft);
+        }
+
+        .print-header__meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .print-header__stats {
+            text-align: right;
+            font-size: 0.9rem;
+            color: var(--ink-soft);
+        }
+
+        .print-header__stats strong {
+            display: block;
+            font-size: 1.4rem;
+            color: var(--ink);
+        }
+
+        .round-section {
+            margin-bottom: 32px;
+        }
+
+        .round-section__header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .round-section__header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .round-section__header .badge {
+            font-size: 0.8rem;
+        }
+
+        .print-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .print-card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 12px;
+        }
+
+        .print-card__media img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .print-card__media .image-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+        }
+
+        .print-card__content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .print-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .print-card__lane {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .print-card__target {
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+        }
+
+        .print-card__stakes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+
+        .print-stake {
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .print-stake__label {
+            color: var(--ink-soft);
+            text-transform: capitalize;
+        }
+
+        .print-stake__value {
+            font-weight: 600;
+        }
+
+        .stake-diff {
+            margin-left: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .stake-diff.positive {
+            color: var(--success);
+        }
+
+        .stake-diff.negative {
+            color: var(--danger);
+        }
+
+        .diff-note {
+            margin: 4px 0 0;
+            font-size: 0.75rem;
+            color: var(--ink-soft);
+        }
+
+        .print-footer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-banner">
+        <div class="print-banner__info">
+            {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+            <span>Print preview for <strong>{{ tournament.name }}</strong></span>
+        </div>
+        <div class="print-actions">
+            <a class="button ghost" href="{{ path('tournament_view', {id: tournament.id}) }}" style="background: transparent; color: #fff; border-color: rgba(255,255,255,0.3);">
+                {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+                <span>Back to view</span>
+            </a>
+            <button class="button" type="button" onclick="window.print()">
+                {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+                <span>Print</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="print-page">
+        <header class="print-header">
+            <div>
+                <h1>{{ tournament.name }}</h1>
+                <div class="print-header__meta">
+                    <span>
+                        {{ ux_icon('lucide:map-pin', {class: 'icon'}) }}
+                        {{ archeryGround.name }}
+                    </span>
+                    <span>
+                        {{ ux_icon('lucide:calendar', {class: 'icon'}) }}
+                        {{ tournament.eventDate|date('Y-m-d') }}
+                    </span>
+                    <span>
+                        {{ ux_icon('lucide:target', {class: 'icon'}) }}
+                        {{ tournament.ruleset.value }}
+                    </span>
+                </div>
+            </div>
+            <div class="print-header__stats">
+                <strong>{{ assignmentCards|length }}</strong>
+                targets assigned
+            </div>
+        </header>
+
+        {% if assignmentCards|default([]) is empty %}
+            <div class="empty-state">No assignments to print.</div>
+        {% else %}
+            {% set rounds = [] %}
+            {% set roundCounts = {} %}
+            {% for card in assignmentCards %}
+                {% set roundKey = 'round_' ~ card.round %}
+                {% set roundCounts = roundCounts|merge({ (roundKey): (roundCounts[roundKey]|default(0) + 1) }) %}
+                {% if card.round not in rounds %}
+                    {% set rounds = rounds|merge([card.round]) %}
+                {% endif %}
+            {% endfor %}
+
+            {% for round in rounds %}
+                <section class="round-section">
+                    <div class="round-section__header">
+                        <h2>Round {{ round }}</h2>
+                        <span class="badge">{{ roundCounts['round_' ~ round]|default(0) }} targets</span>
+                    </div>
+                    <div class="print-cards">
+                        {% for card in assignmentCards %}
+                            {% if card.round == round %}
+                                <article class="print-card">
+                                    <div class="print-card__media">
+                                        {% if card.targetImage %}
+                                            <img src="{{ card.targetImage }}" alt="{{ card.targetName }}">
+                                        {% else %}
+                                            <div class="image-placeholder">No image</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="print-card__content">
+                                        <div class="print-card__header">
+                                            <div>
+                                                <div class="print-card__lane">{{ card.laneName }}</div>
+                                                <div class="print-card__target">{{ card.targetName }}</div>
+                                            </div>
+                                            <span class="badge" style="font-size: 0.7rem;">{{ target_type_label(card.targetType) }}</span>
+                                        </div>
+                                        <div class="print-card__stakes">
+                                            {% for stake in stakeKeys %}
+                                                {% set stakeValue = card.stakes[stake]|default(null) %}
+                                                {% if stakeValue is not null %}
+                                                    <span class="print-stake">
+                                                        <span class="print-stake__label">{{ stake }}:</span>
+                                                        <span class="print-stake__value">
+                                                            {{ stakeValue }}m
+                                                            {% if card.diffs[stake] is defined %}
+                                                                {% set delta = card.diffs[stake] %}
+                                                                <span class="stake-diff {{ delta > 0 ? 'positive' : 'negative' }}">
+                                                                    {{ delta > 0 ? '+' : '' }}{{ delta }}m
+                                                                </span>
+                                                            {% endif %}
+                                                        </span>
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        {% if card.diffRound is not null %}
+                                            <p class="diff-note">Δ vs round {{ card.diffRound }}</p>
+                                        {% endif %}
+                                    </div>
+                                </article>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        {% endif %}
+
+        <footer class="print-footer">
+            Archery Tournament Generator · {{ tournament.name }} · Printed {{ 'now'|date('Y-m-d H:i') }}
+        </footer>
+    </div>
+</body>
+</html>

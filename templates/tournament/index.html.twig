@@ -99,6 +99,10 @@
                     {{ ux_icon('lucide:eye', {class: 'icon'}) }}
                     <span>View</span>
                 </a>
+                <a class="button ghost" href="{{ path('tournament_print', {id: tournament.id}) }}">
+                    {{ ux_icon('lucide:printer', {class: 'icon'}) }}
+                    <span>Print</span>
+                </a>
                 <form method="post" action="{{ path('tournament_delete', {id: tournament.id}) }}" onsubmit="return confirm('Delete this tournament?')">
                     <input type="hidden" name="_token" value="{{ csrf_token('tournament_delete_' ~ tournament.id) }}">
                     <button class="button ghost danger" type="submit">
