@@ -8,6 +8,7 @@ use App\Application\Command\CommandResult;
 use App\Application\Service\TargetImageStorage;
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Repository\ArcheryGroundRepository;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class UpdateTargetHandler
 {
@@ -39,7 +40,7 @@ final readonly class UpdateTargetHandler
         }
 
         $newImagePath = null;
-        if ($command->image !== null) {
+        if ($command->image instanceof UploadedFile) {
             $newImagePath = $this->targetImageStorage->store($command->image, $command->targetId);
         }
 

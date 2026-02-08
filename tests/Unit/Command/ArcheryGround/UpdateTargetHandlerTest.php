@@ -85,7 +85,6 @@ final class UpdateTargetHandlerTest extends TestCase
             targetId: $targetId,
             name: 'Renamed Deer',
             type: TargetType::ANIMAL_GROUP_3,
-            image: null,
         ));
 
         self::assertTrue($result->success);

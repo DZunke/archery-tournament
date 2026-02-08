@@ -50,6 +50,26 @@
             </button>
         </div>
 
+        <div class="filter-bar" role="search" aria-label="Filter lanes">
+            <label class="field">
+                <span>Search</span>
+                <input type="text" id="lane-filter" placeholder="Search by name">
+            </label>
+            <label class="field">
+                <span>Type</span>
+                <select id="lane-type-filter">
+                    <option value="">All lanes</option>
+                    <option value="competition">Competition</option>
+                    <option value="training">Training only</option>
+                </select>
+            </label>
+            <button class="button ghost" type="button" id="lane-filter-reset">
+                {{ ux_icon('lucide:rotate-ccw', {class: 'icon'}) }}
+                <span>Reset</span>
+            </button>
+        </div>
+        <p class="filter-count" id="lane-filter-count"></p>
+
         <div class="table lanes">
             <div class="table-row table-head">
                 <div>Name</div>
@@ -57,7 +77,7 @@
                 <div></div>
             </div>
             {% for lane in archeryGround.shootingLanes %}
-                <div class="table-row">
+                <div class="table-row lane-row" data-name="{{ lane.name|lower }}" data-training="{{ lane.forTrainingOnly ? 'training' : 'competition' }}">
                     <div class="lane-name">
                         <span>{{ lane.name }}</span>
                         {% if lane.forTrainingOnly %}
@@ -97,6 +117,9 @@
                     <div>No lanes yet.</div>
                 </div>
             {% endfor %}
+            <div class="table-row empty lane-empty" style="display: none;">
+                <div>No lanes match your filter.</div>
+            </div>
         </div>
     </section>
 
@@ -498,6 +521,14 @@
     const countEl = document.getElementById('target-filter-count');
     const emptyEl = document.querySelector('.target-empty');
     const iconSelects = Array.from(document.querySelectorAll('[data-icon-select]'));
+
+    // Lane filter elements
+    const laneFilterInput = document.getElementById('lane-filter');
+    const laneFilterSelect = document.getElementById('lane-type-filter');
+    const laneFilterReset = document.getElementById('lane-filter-reset');
+    const laneRows = Array.from(document.querySelectorAll('.lane-row'));
+    const laneCountEl = document.getElementById('lane-filter-count');
+    const laneEmptyEl = document.querySelector('.lane-empty');
 
     const dialog = document.getElementById('target-edit-dialog');
     const dialogForm = document.getElementById('target-edit-form');
@@ -999,6 +1030,54 @@
             });
             update();
         }
+
+    // Lane filter logic
+    const laneTotal = laneRows.length;
+    const updateLanes = () => {
+        if (!laneFilterInput || !laneFilterSelect) {
+            return;
+        }
+
+        const term = laneFilterInput.value.trim().toLowerCase();
+        const trainingFilter = laneFilterSelect.value;
+        let visible = 0;
+
+        laneRows.forEach((row) => {
+            const name = row.dataset.name || '';
+            const training = row.dataset.training || '';
+            const matchesName = term === '' || name.includes(term);
+            const matchesTraining = trainingFilter === '' || training === trainingFilter;
+            const show = matchesName && matchesTraining;
+            row.style.display = show ? '' : 'none';
+            if (show) {
+                visible += 1;
+            }
+        });
+
+        if (laneCountEl) {
+            const hasFilter = term !== '' || trainingFilter !== '';
+            if (!hasFilter || laneTotal === 0 || visible === laneTotal) {
+                laneCountEl.textContent = '';
+            } else {
+                laneCountEl.textContent = `Showing ${visible} of ${laneTotal}`;
+            }
+        }
+
+        if (laneEmptyEl) {
+            laneEmptyEl.style.display = laneTotal > 0 && visible === 0 ? '' : 'none';
+        }
+    };
+
+    if (laneFilterInput && laneFilterSelect && laneFilterReset) {
+        laneFilterInput.addEventListener('input', updateLanes);
+        laneFilterSelect.addEventListener('change', updateLanes);
+        laneFilterReset.addEventListener('click', () => {
+            laneFilterInput.value = '';
+            laneFilterSelect.value = '';
+            updateLanes();
+        });
+        updateLanes();
+    }
 })();
 </script>
 {% endblock %}
