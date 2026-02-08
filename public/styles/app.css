@@ -1971,3 +1971,29 @@ table.table--compact tbody tr:last-child td {
   margin-bottom: 0;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.pagination__info {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  min-width: 100px;
+  text-align: center;
+}
+
+.pagination .button {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.pagination .button:disabled {
+  opacity: 0.4;
+}
+

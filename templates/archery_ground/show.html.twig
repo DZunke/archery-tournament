@@ -290,6 +290,17 @@
                 <div>No targets match your filter.</div>
             </div>
         </div>
+        <nav class="pagination" id="target-pagination" aria-label="Target list pagination">
+            <button class="button ghost" type="button" id="target-page-prev" disabled>
+                {{ ux_icon('lucide:chevron-left', {class: 'icon'}) }}
+                <span>Previous</span>
+            </button>
+            <span class="pagination__info" id="target-page-info"></span>
+            <button class="button ghost" type="button" id="target-page-next">
+                <span>Next</span>
+                {{ ux_icon('lucide:chevron-right', {class: 'icon'}) }}
+            </button>
+        </nav>
     </section>
 </div>
 
@@ -1452,6 +1463,14 @@
 
     const total = rows.length;
     const usageSelect = document.getElementById('target-usage-filter');
+    const ITEMS_PER_PAGE = 10;
+    let currentPage = 1;
+
+    const paginationNav = document.getElementById('target-pagination');
+    const prevBtn = document.getElementById('target-page-prev');
+    const nextBtn = document.getElementById('target-page-next');
+    const pageInfo = document.getElementById('target-page-info');
+
     const update = () => {
         if (!input || !select) {
             return;
@@ -1460,41 +1479,88 @@
         const term = input.value.trim().toLowerCase();
         const type = select.value;
         const usage = usageSelect ? usageSelect.value : '';
-        let visible = 0;
 
-        rows.forEach((row) => {
+        const filteredRows = rows.filter((row) => {
             const name = row.dataset.name || '';
             const rowType = row.dataset.type || '';
             const rowTraining = row.dataset.training || '';
             const matchesName = term === '' || name.includes(term);
             const matchesType = type === '' || rowType === type;
             const matchesUsage = usage === '' || rowTraining === usage;
-            const show = matchesName && matchesType && matchesUsage;
-            row.style.display = show ? '' : 'none';
-            if (show) {
-                visible += 1;
-            }
+            return matchesName && matchesType && matchesUsage;
+        });
+
+        const totalFiltered = filteredRows.length;
+        const totalPages = Math.max(1, Math.ceil(totalFiltered / ITEMS_PER_PAGE));
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+
+        rows.forEach((row) => {
+            row.style.display = 'none';
+        });
+
+        filteredRows.forEach((row, index) => {
+            row.style.display = (index >= startIndex && index < endIndex) ? '' : 'none';
         });
 
         if (countEl) {
             const hasFilter = term !== '' || type !== '' || usage !== '';
-            if (!hasFilter || total === 0 || visible === total) {
+            if (!hasFilter || total === 0 || totalFiltered === total) {
                 countEl.textContent = '';
             } else {
-                countEl.textContent = `Showing ${visible} of ${total}`;
+                countEl.textContent = `Showing ${totalFiltered} of ${total}`;
             }
         }
 
         if (emptyEl) {
-            emptyEl.style.display = total > 0 && visible === 0 ? '' : 'none';
+            emptyEl.style.display = total > 0 && totalFiltered === 0 ? '' : 'none';
+        }
+
+        if (paginationNav && prevBtn && nextBtn && pageInfo) {
+            if (totalFiltered <= ITEMS_PER_PAGE) {
+                paginationNav.style.display = 'none';
+            } else {
+                paginationNav.style.display = '';
+                const showStart = startIndex + 1;
+                const showEnd = Math.min(endIndex, totalFiltered);
+                pageInfo.textContent = `${showStart}-${showEnd} of ${totalFiltered}`;
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= totalPages;
+            }
         }
     };
 
+    const goToPage = (page) => {
+        currentPage = page;
+        update();
+    };
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+    }
+
         if (input && select && reset) {
-            input.addEventListener('input', update);
-            select.addEventListener('change', update);
+            input.addEventListener('input', () => {
+                currentPage = 1;
+                update();
+            });
+            select.addEventListener('change', () => {
+                currentPage = 1;
+                update();
+            });
             if (usageSelect) {
-                usageSelect.addEventListener('change', update);
+                usageSelect.addEventListener('change', () => {
+                    currentPage = 1;
+                    update();
+                });
             }
             reset.addEventListener('click', () => {
                 input.value = '';
@@ -1502,6 +1568,7 @@
                 if (usageSelect) {
                     usageSelect.value = '';
                 }
+                currentPage = 1;
                 update();
                 refreshIconSelect(select);
             });
