@@ -8,7 +8,11 @@
         <h1>Tournaments</h1>
         <p>Generate and manage tournaments from your configured archery grounds.</p>
     </div>
-    <div>
+    <div class="inline-actions">
+        <a class="button ghost" href="{{ path('tournament_rules') }}">
+            {{ ux_icon('lucide:book-open', {class: 'icon'}) }}
+            <span>Rules</span>
+        </a>
         <a class="button" href="{{ path('tournament_new') }}">
             {{ ux_icon('lucide:plus', {class: 'icon'}) }}
             <span>New tournament</span>

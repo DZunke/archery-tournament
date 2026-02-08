@@ -156,6 +156,17 @@ When changing modal functionality:
 3. Update the button that triggers the modal (data-* attributes, class name)
 4. Update event listeners for the new class/selector
 
+### 6. Forgetting Rules Overview Updates
+
+When modifying validation rules, rulesets, or generator options:
+- Update `RulesController` if adding new data sources
+- Update `templates/tournament/rules.html.twig` to display new information
+- Update `TargetType` enum when changing target group definitions
+- Update `Ruleset` enum when changing stake distance ranges or balancing rules
+- Run the integration test in `tests/Integration/Controller/RulesControllerTest.php`
+
+The Rules Overview page (`/tournaments/rules`) is the user-facing documentation generated from code. It must stay synchronized with the domain.
+
 ## CSRF Token Convention
 
 CSRF tokens follow the pattern:

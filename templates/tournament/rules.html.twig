@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rules Overview · Archery Tournament{% endblock %}
+
+{% block body %}
+<section class="page-header">
+    <div>
+        <h1>Rules Overview</h1>
+        <p>Reference documentation for target groups, rulesets, validation rules, and generator options.</p>
+    </div>
+    <div>
+        <a class="button ghost" href="{{ path('tournament_index') }}">
+            {{ ux_icon('lucide:arrow-left', {class: 'icon'}) }}
+            <span>Back to Tournaments</span>
+        </a>
+    </div>
+</section>
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Target Group Definitions</h2>
+    </div>
+    <p class="muted">Targets are classified into groups based on their kill zone size. This classification determines which stake distances apply during tournament generation and validation.</p>
+
+    <div class="target-groups-grid">
+        {% for group in targetGroups %}
+            <div class="target-group-card">
+                <div class="target-group-card__header">
+                    <h3>{{ group.label }}</h3>
+                </div>
+                <p class="target-group-card__description">{{ group.description }}</p>
+                <div class="target-group-card__size">
+                    {{ ux_icon('lucide:ruler', {class: 'icon'}) }}
+                    <span>
+                        {% if group.zoneSize.min and group.zoneSize.max %}
+                            {{ group.zoneSize.min }}mm - {{ group.zoneSize.max }}mm
+                        {% elseif group.zoneSize.min %}
+                            &ge; {{ group.zoneSize.min }}mm
+                        {% elseif group.zoneSize.max %}
+                            &le; {{ group.zoneSize.max }}mm
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Available Rulesets</h2>
+    </div>
+    <p class="muted">Each ruleset defines stake distance ranges per target group and determines which validation rules apply.</p>
+
+    <div class="rules-grid">
+        {% for ruleset in rulesets %}
+            <article class="card ruleset-card">
+                <div class="ruleset-card__header">
+                    <h3>{{ ruleset.name }}</h3>
+                    <span class="badge">{{ ruleset.value }}</span>
+                </div>
+
+                <p class="ruleset-card__description">{{ ruleset.description }}</p>
+
+                <div class="ruleset-card__section">
+                    <h4>Configuration</h4>
+                    <dl class="definition-list">
+                        <dt>Target Group Balancing</dt>
+                        <dd>
+                            {% if ruleset.supportsBalancing %}
+                                <span class="status-pill upcoming">Required</span>
+                            {% else %}
+                                <span class="status-pill past">Not Required</span>
+                            {% endif %}
+                        </dd>
+                        <dt>Stake Distance Validation</dt>
+                        <dd>
+                            {% if ruleset.value == 'DSB_3D' %}
+                                <span class="status-pill upcoming">Strict</span>
+                            {% else %}
+                                <span class="status-pill past">Unrestricted</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="ruleset-card__section">
+                    <h4>Stake Distances per Target Group</h4>
+                    {% for targetData in ruleset.stakeDistances %}
+                        <div class="target-type-block">
+                            <h5>{{ targetData.label }}</h5>
+                            <table class="table table--compact">
+                                <thead>
+                                    <tr>
+                                        <th>Stake</th>
+                                        <th>Min Distance</th>
+                                        <th>Max Distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stake, range in targetData.ranges %}
+                                        <tr>
+                                            <td>
+                                                <span class="stake-badge stake-badge--{{ stake }}">{{ stake|capitalize }}</span>
+                                            </td>
+                                            <td>{{ range.min }}m</td>
+                                            <td>
+                                                {% if range.max >= 999 %}
+                                                    <span class="muted">No limit</span>
+                                                {% else %}
+                                                    {{ range.max }}m
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Validation Rules</h2>
+    </div>
+    <p class="muted">These rules are applied when validating a tournament configuration. Some rules apply only to specific rulesets.</p>
+
+    <div class="validation-rules-list">
+        {% for rule in validationRules %}
+            <details class="validation-rule-item">
+                <summary class="validation-rule-item__summary">
+                    <div class="validation-rule-item__icon">
+                        {{ ux_icon('lucide:check-circle', {class: 'icon'}) }}
+                    </div>
+                    <div class="validation-rule-item__header">
+                        <h4>{{ rule.name }}</h4>
+                        <div class="validation-rule-item__badges">
+                            {% for applies in rule.applicability %}
+                                <span class="badge badge--small">{{ applies }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </summary>
+                <div class="validation-rule-item__content">
+                    <p><strong>What it checks:</strong> {{ rule.description }}</p>
+                    {% if rule.details %}
+                        <p class="muted">{{ rule.details }}</p>
+                    {% endif %}
+                </div>
+            </details>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel panel-spaced">
+    <div class="panel-header">
+        <h2>Generator Options</h2>
+    </div>
+    <p class="muted">These options affect how tournaments are generated but do not impact validation.</p>
+
+    <div class="generator-options-list">
+        {% for option in generatorOptions %}
+            <div class="generator-option-item">
+                <div class="generator-option-item__icon">
+                    {{ ux_icon('lucide:settings', {class: 'icon'}) }}
+                </div>
+                <div class="generator-option-item__content">
+                    <h4>{{ option.name }}</h4>
+                    <p><strong>Effect:</strong> {{ option.description }}</p>
+                    <p class="muted">{{ option.details }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+

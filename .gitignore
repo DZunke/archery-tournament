@@ -7,3 +7,4 @@
 
 .phpcs-cache
 .phpunit.result.cache
+.playwright-mcp
