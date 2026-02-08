@@ -3,6 +3,7 @@
 /config/reference.php
 /public/uploads/*
 !/public/uploads/.gitkeep
+/.notes/
 
 .phpcs-cache
 .phpunit.result.cache

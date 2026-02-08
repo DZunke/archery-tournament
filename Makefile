@@ -17,7 +17,7 @@ help: ## Outputs this help screen
 
 
 ## —— Quality 🧰 ———————————————————————————————————————————————————————————————
-qa: qa-cs qa-static ## Executes the full quality pipeline
+qa: qa-cs qa-static qa-tests ## Executes the full quality pipeline
 
 qa-cs: ## Check coding standards
 	$(PHP) vendor/bin/phpcs -n
@@ -28,6 +28,9 @@ qa-static: ## Run static analysis
 qa-fix: ## Executes rector and the cs fixer
 	$(PHP) vendor/bin/rector
 	$(PHP) vendor/bin/phpcbf -n
+
+qa-tests: ## Run all tests
+	$(PHP) vendor/bin/phpunit --testdox
 
 ## —— Database 🗄️ ——————————————————————————————————————————————————————————————
 migrate: ## Executes database migrations
