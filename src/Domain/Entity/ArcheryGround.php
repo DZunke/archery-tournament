@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use App\Domain\Entity\ArcheryGround\Attachment;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Entity\ArcheryGround\Target;
 use App\Domain\ValueObject\TargetType;
@@ -19,12 +20,14 @@ final class ArcheryGround
     /**
      * @param list<Target>       $targetStorage
      * @param list<ShootingLane> $shootingLanes
+     * @param list<Attachment>   $attachments
      */
     public function __construct(
         private readonly string $id,
         private readonly string $name,
         private array $targetStorage = [],
         private array $shootingLanes = [],
+        private array $attachments = [],
     ) {
         Assert::uuid($this->id, 'The archery ground id must be a valid UUID.');
         Assert::notEmpty($this->name, 'The archery ground name must not be empty.');
@@ -82,5 +85,16 @@ final class ArcheryGround
     public function addShootingLane(ShootingLane $shootingLane): void
     {
         $this->shootingLanes[] = $shootingLane;
+    }
+
+    /** @return list<Attachment> */
+    public function attachments(): array
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(Attachment $attachment): void
+    {
+        $this->attachments[] = $attachment;
     }
 }

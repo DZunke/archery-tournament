@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Command\ArcheryGround;
 
 use App\Application\Command\CommandResult;
+use App\Application\Service\AttachmentStorage;
 use App\Application\Service\TargetImageStorage;
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Repository\ArcheryGroundRepository;
@@ -14,6 +15,7 @@ final readonly class DeleteArcheryGroundHandler
     public function __construct(
         private ArcheryGroundRepository $archeryGroundRepository,
         private TargetImageStorage $targetImageStorage,
+        private AttachmentStorage $attachmentStorage,
     ) {
     }
 
@@ -23,6 +25,10 @@ final readonly class DeleteArcheryGroundHandler
         if ($archeryGround instanceof ArcheryGround) {
             foreach ($archeryGround->targetStorage() as $target) {
                 $this->targetImageStorage->remove($target->image());
+            }
+
+            foreach ($archeryGround->attachments() as $attachment) {
+                $this->attachmentStorage->remove($attachment->filePath());
             }
         }
 

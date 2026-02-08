@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Repository;
 
 use App\Domain\Entity\ArcheryGround;
+use App\Domain\Entity\ArcheryGround\Attachment;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Entity\ArcheryGround\Target;
 
@@ -51,4 +52,8 @@ interface ArcheryGroundRepository
         string|null $imagePath = null,
         int|null $targetZoneSize = null,
     ): void;
+
+    public function addAttachment(string $archeryGroundId, Attachment $attachment): void;
+
+    public function removeAttachment(string $attachmentId): void;
 }

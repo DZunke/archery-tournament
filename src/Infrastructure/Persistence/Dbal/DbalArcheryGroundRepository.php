@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Dbal;
 
 use App\Domain\Entity\ArcheryGround;
+use App\Domain\Entity\ArcheryGround\Attachment;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Entity\ArcheryGround\Target;
 use App\Domain\Repository\ArcheryGroundRepository;
 use App\Infrastructure\Persistence\Dbal\Hydrator\ArcheryGroundHydrator;
+use App\Infrastructure\Persistence\Dbal\Hydrator\AttachmentHydrator;
 use App\Infrastructure\Persistence\Dbal\Hydrator\ShootingLaneHydrator;
 use App\Infrastructure\Persistence\Dbal\Hydrator\TargetHydrator;
 use Doctrine\DBAL\Connection;
@@ -24,6 +26,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
         private ArcheryGroundHydrator $archeryGroundHydrator,
         private ShootingLaneHydrator $shootingLaneHydrator,
         private TargetHydrator $targetHydrator,
+        private AttachmentHydrator $attachmentHydrator,
     ) {
     }
 
@@ -96,7 +99,18 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             $targets[] = $this->targetHydrator->hydrate($targetRow);
         }
 
-        return $this->archeryGroundHydrator->hydrate($row, $lanes, $targets);
+        $attachmentRows = $this->connection->fetchAllAssociative(
+            'SELECT id, title, file_path, mime_type, original_filename FROM archery_ground_attachments WHERE archery_ground_id = ? ORDER BY title',
+            [$id],
+        );
+
+        $attachments = [];
+        foreach ($attachmentRows as $attachmentRow) {
+            /** @var array{id: string, title: string, file_path: string, mime_type: string, original_filename: string} $attachmentRow */
+            $attachments[] = $this->attachmentHydrator->hydrate($attachmentRow);
+        }
+
+        return $this->archeryGroundHydrator->hydrate($row, $lanes, $targets, $attachments);
     }
 
     /** @return list<ArcheryGround> */
@@ -119,6 +133,7 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
 
     public function delete(string $id): void
     {
+        $this->connection->executeStatement('DELETE FROM archery_ground_attachments WHERE archery_ground_id = ?', [$id]);
         $this->connection->executeStatement('DELETE FROM targets WHERE archery_ground_id = ?', [$id]);
         $this->connection->executeStatement('DELETE FROM shooting_lanes WHERE archery_ground_id = ?', [$id]);
         $this->connection->executeStatement('DELETE FROM archery_grounds WHERE id = ?', [$id]);
@@ -197,5 +212,22 @@ final readonly class DbalArcheryGroundRepository implements ArcheryGroundReposit
             'UPDATE targets SET name = ?, type = ?, for_training_only = ?, notes = ?, target_zone_size = ? WHERE id = ? AND archery_ground_id = ?',
             [$name, $type, $forTrainingOnly, $notes, $targetZoneSize, $targetId, $archeryGroundId],
         );
+    }
+
+    public function addAttachment(string $archeryGroundId, Attachment $attachment): void
+    {
+        $this->connection->insert('archery_ground_attachments', [
+            'id' => $attachment->id(),
+            'archery_ground_id' => $archeryGroundId,
+            'title' => $attachment->title(),
+            'file_path' => $attachment->filePath(),
+            'mime_type' => $attachment->mimeType(),
+            'original_filename' => $attachment->originalFilename(),
+        ]);
+    }
+
+    public function removeAttachment(string $attachmentId): void
+    {
+        $this->connection->executeStatement('DELETE FROM archery_ground_attachments WHERE id = ?', [$attachmentId]);
     }
 }

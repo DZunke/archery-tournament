@@ -611,6 +611,20 @@ a {
   color: var(--ink);
 }
 
+.dropzone-error {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.dropzone.has-error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1476,3 +1490,62 @@ a {
     display: none;
   }
 }
+
+/* Attachment card styles */
+.attachment-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.attachment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attachment-card__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  border-radius: 12px;
+  background: var(--paper-alt);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.attachment-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attachment-card__preview .icon-lg {
+  width: 48px;
+  height: 48px;
+  color: var(--ink-soft);
+}
+
+.attachment-card__info {
+  flex: 1;
+}
+
+.attachment-card__info h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.attachment-card__info p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.attachment-card__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.attachment-card__actions form {
+  margin: 0;
+}
+

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Support;
 
 use App\Domain\Entity\ArcheryGround;
+use App\Domain\Entity\ArcheryGround\Attachment;
 use App\Domain\Entity\ArcheryGround\ShootingLane;
 use App\Domain\Entity\ArcheryGround\Target;
 use App\Domain\Repository\ArcheryGroundRepository;
@@ -37,6 +38,12 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
 
     /** @var list<array{archeryGroundId: string, targetId: string, name: string, type: string, forTrainingOnly: bool, notes: string, imagePath: string|null, targetZoneSize: int|null}> */
     public array $updatedTargets = [];
+
+    /** @var list<array{archeryGroundId: string, attachment: Attachment}> */
+    public array $addedAttachments = [];
+
+    /** @var list<string> */
+    public array $removedAttachments = [];
 
     /** @var list<string> */
     public array $deleted = [];
@@ -138,5 +145,18 @@ final class InMemoryArcheryGroundRepository implements ArcheryGroundRepository
     public function seed(ArcheryGround $archeryGround): void
     {
         $this->grounds[$archeryGround->id()] = $archeryGround;
+    }
+
+    public function addAttachment(string $archeryGroundId, Attachment $attachment): void
+    {
+        $this->addedAttachments[] = [
+            'archeryGroundId' => $archeryGroundId,
+            'attachment' => $attachment,
+        ];
+    }
+
+    public function removeAttachment(string $attachmentId): void
+    {
+        $this->removedAttachments[] = $attachmentId;
     }
 }
