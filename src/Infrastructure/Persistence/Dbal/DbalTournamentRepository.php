@@ -16,6 +16,7 @@ use Doctrine\DBAL\Connection;
 use JsonException;
 use Symfony\Component\Uid\Uuid;
 
+use function array_map;
 use function json_decode;
 use function json_encode;
 
@@ -251,6 +252,44 @@ final readonly class DbalTournamentRepository implements TournamentRepository
     public function removeAttachment(string $attachmentId): void
     {
         $this->connection->executeStatement('DELETE FROM tournament_attachments WHERE id = ?', [$attachmentId]);
+    }
+
+    /** @return list<string> Returns tournament names using the specified lane */
+    public function findTournamentNamesUsingLane(string $laneId): array
+    {
+        $sql = <<<'SQL'
+            SELECT DISTINCT t.name
+            FROM tournament_targets tt
+            INNER JOIN tournaments t ON tt.tournament_id = t.id
+            WHERE tt.shooting_lane_id = ?
+            ORDER BY t.name
+            SQL;
+
+        $rows = $this->connection->fetchAllAssociative($sql, [$laneId]);
+
+        return array_map(
+            static fn (array $row): string => (string) $row['name'],
+            $rows,
+        );
+    }
+
+    /** @return list<string> Returns tournament names using the specified target */
+    public function findTournamentNamesUsingTarget(string $targetId): array
+    {
+        $sql = <<<'SQL'
+            SELECT DISTINCT t.name
+            FROM tournament_targets tt
+            INNER JOIN tournaments t ON tt.tournament_id = t.id
+            WHERE tt.target_id = ?
+            ORDER BY t.name
+            SQL;
+
+        $rows = $this->connection->fetchAllAssociative($sql, [$targetId]);
+
+        return array_map(
+            static fn (array $row): string => (string) $row['name'],
+            $rows,
+        );
     }
 
     /** @param array<string,int> $stakes */

@@ -77,6 +77,8 @@
                 <div></div>
             </div>
             {% for lane in archeryGround.shootingLanes %}
+                {% set laneUsages = tournamentUsages.tournamentsUsingLane(lane.id) %}
+                {% set laneInUse = laneUsages|length > 0 %}
                 <div class="table-row lane-row" data-name="{{ lane.name|lower }}" data-training="{{ lane.forTrainingOnly ? 'training' : 'competition' }}">
                     <div class="lane-name">
                         <span>{{ lane.name }}</span>
@@ -85,6 +87,9 @@
                         {% endif %}
                         {% if lane.notes %}
                             <span class="lane-badge" title="{{ lane.notes }}">{{ ux_icon('lucide:message-square-text', {class: 'icon icon-sm'}) }}</span>
+                        {% endif %}
+                        {% if laneInUse %}
+                            <span class="lane-badge in-use" title="Used in {{ laneUsages|length }} tournament(s)">{{ ux_icon('lucide:trophy', {class: 'icon icon-sm'}) }}</span>
                         {% endif %}
                     </div>
                     <div>{{ lane.maxDistance }} m</div>
@@ -99,17 +104,26 @@
                             data-distance="{{ lane.maxDistance }}"
                             data-for-training-only="{{ lane.forTrainingOnly ? '1' : '0' }}"
                             data-notes="{{ lane.notes }}"
+                            data-in-use="{{ laneInUse ? '1' : '0' }}"
+                            data-usages="{{ laneUsages|map(u => u.name)|join(', ') }}"
                         >
                             {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
                             <span class="sr-only">Edit</span>
                         </button>
-                        <form method="post" action="{{ path('archery_ground_delete_lane', {id: archeryGround.id, laneId: lane.id}) }}" onsubmit="return confirm('Remove this lane?')">
-                            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}">
-                            <button class="icon-button danger" type="submit" aria-label="Remove lane {{ lane.name }}">
+                        {% if laneInUse %}
+                            <button class="icon-button danger" type="button" disabled aria-label="Cannot remove lane {{ lane.name }} - in use" title="Cannot remove: used in tournament(s)">
                                 {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
-                                <span class="sr-only">Remove</span>
+                                <span class="sr-only">Cannot remove</span>
                             </button>
-                        </form>
+                        {% else %}
+                            <form method="post" action="{{ path('archery_ground_delete_lane', {id: archeryGround.id, laneId: lane.id}) }}" onsubmit="return confirm('Remove this lane?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_lane_' ~ archeryGround.id ~ '_' ~ lane.id) }}">
+                                <button class="icon-button danger" type="submit" aria-label="Remove lane {{ lane.name }}">
+                                    {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                                    <span class="sr-only">Remove</span>
+                                </button>
+                            </form>
+                        {% endif %}
                     </div>
                 </div>
             {% else %}
@@ -199,6 +213,8 @@
                 <div></div>
             </div>
             {% for target in archeryGround.targetStorage %}
+                {% set targetUsages = tournamentUsages.tournamentsUsingTarget(target.id) %}
+                {% set targetInUse = targetUsages|length > 0 %}
                 <div class="table-row target-row" data-name="{{ target.name|lower }}" data-type="{{ target.type.value }}" data-training="{{ target.forTrainingOnly ? 'training' : 'competition' }}">
                     <div class="image-cell">
                         {% if target.image %}
@@ -224,6 +240,9 @@
                             {% if target.notes %}
                                 <span class="lane-badge" title="{{ target.notes }}">{{ ux_icon('lucide:message-square-text', {class: 'icon icon-sm'}) }}</span>
                             {% endif %}
+                            {% if targetInUse %}
+                                <span class="lane-badge in-use" title="Used in {{ targetUsages|length }} tournament(s)">{{ ux_icon('lucide:trophy', {class: 'icon icon-sm'}) }}</span>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="table-actions target-actions">
@@ -239,17 +258,26 @@
                             data-for-training-only="{{ target.forTrainingOnly ? '1' : '0' }}"
                             data-notes="{{ target.notes }}"
                             data-target-zone-size="{{ target.targetZoneSize }}"
+                            data-in-use="{{ targetInUse ? '1' : '0' }}"
+                            data-usages="{{ targetUsages|map(u => u.name)|join(', ') }}"
                         >
                             {{ ux_icon('lucide:pencil', {class: 'icon'}) }}
                             <span class="sr-only">Edit</span>
                         </button>
-                        <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
-                            <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_target_' ~ archeryGround.id ~ '_' ~ target.id) }}">
-                            <button class="icon-button danger" type="submit" aria-label="Remove target {{ target.name }}">
+                        {% if targetInUse %}
+                            <button class="icon-button danger" type="button" disabled aria-label="Cannot remove target {{ target.name }} - in use" title="Cannot remove: used in tournament(s)">
                                 {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
-                                <span class="sr-only">Remove</span>
+                                <span class="sr-only">Cannot remove</span>
                             </button>
-                        </form>
+                        {% else %}
+                            <form method="post" action="{{ path('archery_ground_delete_target', {id: archeryGround.id, targetId: target.id}) }}" onsubmit="return confirm('Remove this target?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('archery_ground_delete_target_' ~ archeryGround.id ~ '_' ~ target.id) }}">
+                                <button class="icon-button danger" type="submit" aria-label="Remove target {{ target.name }}">
+                                    {{ ux_icon('lucide:trash-2', {class: 'icon'}) }}
+                                    <span class="sr-only">Remove</span>
+                                </button>
+                            </form>
+                        {% endif %}
                     </div>
                 </div>
             {% else %}
@@ -391,6 +419,13 @@
     <form method="post" id="lane-form" class="modal__body">
         <input type="hidden" name="_token" id="lane-token">
         <h3 id="lane-dialog-title">Edit lane <span id="lane-name-label"></span></h3>
+        <div id="lane-usage-info" class="usage-info" hidden>
+            <div class="usage-info__header">
+                {{ ux_icon('lucide:info', {class: 'icon'}) }}
+                <span>This lane is used in tournaments</span>
+            </div>
+            <p class="usage-info__detail">Editing may affect: <strong id="lane-usage-list"></strong></p>
+        </div>
         <label class="field">
             <span>Lane name</span>
             <input type="text" name="name" id="lane-name-input" placeholder="Lane 1" required>
@@ -506,6 +541,13 @@
     <form method="post" enctype="multipart/form-data" id="target-edit-form" class="modal__body">
         <input type="hidden" name="_token" id="target-edit-token">
         <h3>Edit target <span id="target-edit-title"></span></h3>
+        <div id="target-usage-info" class="usage-info" hidden>
+            <div class="usage-info__header">
+                {{ ux_icon('lucide:info', {class: 'icon'}) }}
+                <span>This target is used in tournaments</span>
+            </div>
+            <p class="usage-info__detail">Editing may affect: <strong id="target-usage-list"></strong></p>
+        </div>
         <fieldset class="field-group">
             <legend>Target Classification</legend>
             <label class="field">
@@ -627,6 +669,11 @@
     const laneNotesInput = document.getElementById('lane-notes-input');
     const laneSubmitBtn = document.getElementById('lane-submit-btn');
     const laneClose = document.querySelector('[data-lane-close]');
+    const laneUsageInfo = document.getElementById('lane-usage-info');
+    const laneUsageList = document.getElementById('lane-usage-list');
+
+    const targetUsageInfo = document.getElementById('target-usage-info');
+    const targetUsageList = document.getElementById('target-usage-list');
 
     const targetAddDialog = document.getElementById('target-add-dialog');
     const targetAddForm = document.getElementById('target-add-form');
@@ -869,6 +916,18 @@
             dialogZoneSizeInput.value = zoneSize && zoneSize !== '' ? zoneSize : '';
         }
 
+        // Show usage info if target is in use
+        const isInUse = button.dataset.inUse === '1';
+        const usages = button.dataset.usages || '';
+        if (targetUsageInfo && targetUsageList) {
+            if (isInUse && usages) {
+                targetUsageList.textContent = usages;
+                targetUsageInfo.hidden = false;
+            } else {
+                targetUsageInfo.hidden = true;
+            }
+        }
+
         if (typeof dialog.showModal === 'function') {
             dialog.showModal();
         } else {
@@ -913,6 +972,18 @@
             if (laneSubmitBtn) {
                 laneSubmitBtn.textContent = 'Save changes';
             }
+
+            // Show usage info if lane is in use
+            const isInUse = button.dataset.inUse === '1';
+            const usages = button.dataset.usages || '';
+            if (laneUsageInfo && laneUsageList) {
+                if (isInUse && usages) {
+                    laneUsageList.textContent = usages;
+                    laneUsageInfo.hidden = false;
+                } else {
+                    laneUsageInfo.hidden = true;
+                }
+            }
         } else {
             if (laneDialogTitle) {
                 laneDialogTitle.textContent = 'Add lane';
@@ -928,6 +999,10 @@
             }
             if (laneSubmitBtn) {
                 laneSubmitBtn.textContent = 'Add lane';
+            }
+            // Hide usage info in add mode
+            if (laneUsageInfo) {
+                laneUsageInfo.hidden = true;
             }
         }
 

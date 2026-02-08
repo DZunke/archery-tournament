@@ -91,6 +91,38 @@ final class InMemoryTournamentRepository implements TournamentRepository
         $this->removedAttachments[] = $attachmentId;
     }
 
+    /** @return list<string> Returns tournament names using the specified lane */
+    public function findTournamentNamesUsingLane(string $laneId): array
+    {
+        $names = [];
+        foreach ($this->tournaments as $tournament) {
+            foreach ($tournament->targets() as $target) {
+                if ($target->shootingLane()->id() === $laneId) {
+                    $names[] = $tournament->name();
+                    break;
+                }
+            }
+        }
+
+        return $names;
+    }
+
+    /** @return list<string> Returns tournament names using the specified target */
+    public function findTournamentNamesUsingTarget(string $targetId): array
+    {
+        $names = [];
+        foreach ($this->tournaments as $tournament) {
+            foreach ($tournament->targets() as $target) {
+                if ($target->target()->id() === $targetId) {
+                    $names[] = $tournament->name();
+                    break;
+                }
+            }
+        }
+
+        return $names;
+    }
+
     public function seed(Tournament $tournament): void
     {
         $this->tournaments[$tournament->id()] = $tournament;

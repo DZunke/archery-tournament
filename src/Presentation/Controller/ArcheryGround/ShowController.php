@@ -6,6 +6,7 @@ namespace App\Presentation\Controller\ArcheryGround;
 
 use App\Application\Bus\QueryBus;
 use App\Application\Query\ArcheryGround\GetArcheryGround;
+use App\Application\Query\ArcheryGround\GetTournamentUsages;
 use App\Application\Query\Tournament\ListTournamentsByArcheryGround;
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\ValueObject\TargetType;
@@ -29,14 +30,16 @@ final class ShowController extends AbstractController
             throw $this->createNotFoundException('Archery ground not found.');
         }
 
-        $tournaments    = $this->queryBus->ask(new ListTournamentsByArcheryGround($archeryGround->id()));
-        $nextTournament = $tournaments[array_key_first($tournaments)] ?? null;
+        $tournaments      = $this->queryBus->ask(new ListTournamentsByArcheryGround($archeryGround->id()));
+        $nextTournament   = $tournaments[array_key_first($tournaments)] ?? null;
+        $tournamentUsages = $this->queryBus->ask(new GetTournamentUsages($archeryGround->id()));
 
         return $this->render('archery_ground/show.html.twig', [
             'archeryGround' => $archeryGround,
             'targetTypes' => TargetType::cases(),
             'tournaments' => $tournaments,
             'nextTournament' => $nextTournament,
+            'tournamentUsages' => $tournamentUsages,
         ]);
     }
 }

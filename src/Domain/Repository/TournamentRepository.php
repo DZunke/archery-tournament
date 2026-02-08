@@ -32,4 +32,10 @@ interface TournamentRepository
     public function addAttachment(string $tournamentId, Attachment $attachment): void;
 
     public function removeAttachment(string $attachmentId): void;
+
+    /** @return list<string> Returns tournament names using the specified lane */
+    public function findTournamentNamesUsingLane(string $laneId): array;
+
+    /** @return list<string> Returns tournament names using the specified target */
+    public function findTournamentNamesUsingTarget(string $targetId): array;
 }

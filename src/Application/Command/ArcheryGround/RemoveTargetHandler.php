@@ -8,11 +8,16 @@ use App\Application\Command\CommandResult;
 use App\Application\Service\TargetImageStorage;
 use App\Domain\Entity\ArcheryGround;
 use App\Domain\Repository\ArcheryGroundRepository;
+use App\Domain\Repository\TournamentRepository;
+
+use function count;
+use function implode;
 
 final readonly class RemoveTargetHandler
 {
     public function __construct(
         private ArcheryGroundRepository $archeryGroundRepository,
+        private TournamentRepository $tournamentRepository,
         private TargetImageStorage $targetImageStorage,
     ) {
     }
@@ -32,6 +37,14 @@ final readonly class RemoveTargetHandler
                 $targetName = $target->name();
                 break;
             }
+        }
+
+        // Check if target is used in any tournament
+        $tournamentNames = $this->tournamentRepository->findTournamentNamesUsingTarget($command->targetId);
+        if (count($tournamentNames) > 0) {
+            return CommandResult::failure(
+                'Cannot remove target "' . $targetName . '" because it is used in tournament(s): ' . implode(', ', $tournamentNames) . '.',
+            );
         }
 
         if ($imagePath !== null) {
